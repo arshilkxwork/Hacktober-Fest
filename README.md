@@ -164,6 +164,26 @@ Post `id`s are what the model cites, so number them in time order.
 uses this to re-run the examples with the real recorded model output and check
 that the committed reports still come out the same.
 
+## Web app
+
+`decisiontrail serve` starts a local API and web app on http://127.0.0.1:8765.
+It uses the same pipeline and the same local model as the CLI, and adds no
+Python dependencies. The interface needs Node.js once, to build it:
+
+```bash
+cd web && npm install && npm run build && cd ..
+decisiontrail serve
+```
+
+The app shows the decisions from `examples/` and from your own analyses: a
+dashboard, a decision explorer with each decision's timeline of quotes, a
+discussion analyzer that runs the extraction live and reports each stage, a
+pull request check that also flags changes reviving a rejected alternative, and
+a list of code links with the repositories you connect. It only reads from
+GitHub and never posts anything. The server listens on 127.0.0.1 only, and a
+`GITHUB_TOKEN` set in its environment stays on the server. See
+[web/README.md](web/README.md) for the development setup.
+
 ## Examples
 
 See [`examples/`](examples/README.md). The two PEP examples have the input, the
