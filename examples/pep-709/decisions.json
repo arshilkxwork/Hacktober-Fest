@@ -1,0 +1,571 @@
+{
+  "generator": "decisiontrail 0.1.0",
+  "model": "qwen2.5:7b-instruct",
+  "decisions": [
+    {
+      "id": "D-726bfcfd",
+      "title": "Adopt PEP 709 as a whole",
+      "status": "accepted",
+      "summary": "PEP 709 was adopted as a whole, with the intention to inline comprehensions occurring inside functions where fast-locals are used, and to handle generator expressions as a follow-up.",
+      "rationale": "The proposal was well-received by the community, with no significant objections raised. The author, Carljm, addressed concerns and updated the PEP accordingly.",
+      "evidence": [
+        {
+          "post_id": "3",
+          "quote": "I was never a fan of the nested functions, so this looks good to me. I’ll leave it to others to consider the cost versus the benefit of the proposed change.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/3",
+          "author": "tjreedy",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "5",
+          "quote": "Thanks for bringing up generator expressions; I will add some text to the PEP about them. The intent is not to change them at all in this PEP. In general they are more difficult to inline, because the generator may escape, and if so it needs to be a real resumable generator function.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/5",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "16",
+          "quote": "Does it matter? Isn’t this just internal to the CPython implementation? It",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16",
+          "author": "Glenn",
+          "verified": true,
+          "match_score": 0.952
+        },
+        {
+          "post_id": "25",
+          "quote": "So if I understand it correctly, the behaviour of `locals`, tracebacks and `UnboundLocalError`/`NameError` will change depending on whether `bar` has any references to `x`?",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/25",
+          "author": "ruro",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "36",
+          "quote": "The Steering Council has decided to accept this PEP for 3.12, provided the implementation can be finished and submitted by May 22 (and preferably sooner :).",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/36",
+          "author": "thomas",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [
+        "PEP 709: Inlined comprehensions",
+        "PEP 709"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "tjreedy",
+        "carljm",
+        "Glenn",
+        "ruro",
+        "thomas"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-17804155",
+      "title": "Inlining of generator expressions",
+      "status": "open",
+      "summary": "The decision is still open on whether to inline generator expressions.",
+      "rationale": "There is ongoing discussion about the feasibility and benefits of inlining generator expressions, given their potential for optimization and the associated costs.",
+      "evidence": [
+        {
+          "post_id": "4",
+          "quote": "I have a question about generator expressions which are not mentioned in the PEP. I guess it’s probably more difficult but there could perhaps be greater potential for optimisation if a locally used generator expression did not need to have an actual generator function with associated per-yield frame-switching cost.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/4",
+          "author": "oscarbenjamin",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "5",
+          "quote": "The intent is not to change them at all in this PEP. In general they are more difficult to inline, because the generator may escape, and if so it needs to be a real resumable generator function. But you’re right that in many cases where we know the generator does not escape (e.g. something like `tuple(x for x in lst)`) we can avoid generator overhead. If PEP 709 is merged, the most straightforward approach would be to convert such comprehensions at compile time to (inlined) list comprehensions, and then e.g. introduce a fast path for list-to-tuple conversion.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/5",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "6",
+          "quote": "I pushed an update to the PEP which addresses this. I realized that although the reference implementation doesn’t inline any generator expressions, the PEP should be clear that this is planned as a likely follow-up.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/6",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "10",
+          "quote": "What about other name collisions between the loop variable and other variables accessible in the function? For example, calling builtin functions: \n\n```\ndef f(lst):\n    x = SomeClass([dir for dir in lst])\n    # Calling the builtin dir()\n    return dir(x)\n```\n\nor referencing global variables: \n\n```\nresult = 1\ndef f(lst):\n    results = [calculate(result) for result in lst]\n    if results[0] != result:\n        ...\n```\n\nThe change from NameError to UnboundLocalError suggests the semantics would change in these cases, as well.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/10",
+          "author": "thomas",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "11",
+          "quote": "Great observation, I was wondering if someone would ask this  The semantics don’t change for these cases, but only because the implementation in the compiler also does a push/pop of its internal scope data, such that e.g. the variable is still treated as a global (`LOAD_GLOBAL` is used) in the outer scope, and treated as a local only in the inner scope.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/11",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "12",
+          "quote": "A PEP is supposed to encapsulate discussion around the idea, so yes, since it came up in the discussion it should probably be mentioned in the PEP",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/12",
+          "author": "thomas",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "13",
+          "quote": "I’ll add these details to the PEP.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/13",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "14",
+          "quote": "That’s a curious quirk. I think I like it, but it effectively does mean that Python has sub-function scope built into the library. Do other implementations than CPython have views on this?",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/14",
+          "author": "Rosuav",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "15",
+          "quote": "Yes; really just into the bytecode compiler. “Sub-function scope” is a reasonably good name for what this PEP introduces.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/15",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "16",
+          "quote": "Does it matter? Isn’t this just internal to the CPython implementation?",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16",
+          "author": "Glenn",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "17",
+          "quote": "user-visible effects beyond just performance (on tracebacks and the output of `locals()`, as described in the PEP), albeit minor ones, it could be considered a change to the language, and other implementations may want to adapt to those effects.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/17",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 0.919
+        },
+        {
+          "post_id": "20",
+          "quote": "Since GraalPy tries to not lag behind CPython more than a year or so, we would be affected by this. Even if it might be considered a minor visible effect and/or an implementation detail, it is always surprising (to me) how much of those details end up being relied upon",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/20",
+          "author": "timfelgentreff",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Inline generator expressions",
+          "reason": "More difficult to implement and may introduce edge cases, especially with global and cell variables.",
+          "evidence": [
+            {
+              "post_id": "5",
+              "quote": "In general they are more difficult to inline, because the generator may escape, and if so it needs to be a real resumable generator function.",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/5",
+              "author": "carljm",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "6",
+              "quote": "I pushed an update to the PEP which addresses this. I realized that although the reference implementation doesn’t inline any generator expressions, the PEP should be clear that this is planned as a likely follow-up.",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/6",
+              "author": "carljm",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "tuple(x for x in lst)",
+        "calculate(result) for result in lst"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "oscarbenjamin",
+        "carljm",
+        "thomas",
+        "Rosuav",
+        "Glenn",
+        "timfelgentreff"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-5bf630fc",
+      "title": "Behavior changes for name collisions",
+      "status": "accepted",
+      "summary": "The behavior for name collisions does not change, as the implementation already handles scope correctly.",
+      "rationale": "The implementation in the compiler already pushes and pops scope information for the variable when entering/leaving the comprehension, ensuring that semantics are maintained.",
+      "evidence": [
+        {
+          "post_id": "11",
+          "quote": "The semantics don’t change for these cases, but only because the implementation in the compiler also does a push/pop of its internal scope data, such that e.g. the variable is still treated as a global (`LOAD_GLOBAL` is used) in the outer scope, and treated as a local only in the inner scope.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/11",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "13",
+          "quote": "The support for globals that I mentioned above already kicks in the same for this case (because it’s exactly the same case as far as the compiler is concerned; the only difference is whether that name exists in module globals at runtime.)",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/13",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Changing the behavior to reflect the scope changes",
+          "reason": "Would introduce unnecessary complexity and change the behavior of existing code.",
+          "evidence": [
+            {
+              "post_id": "11",
+              "quote": "I debated whether to include these details (and similar ones regarding edge cases with cells) in the PEP. On the one hand, including all these details could reassure an observant reader of the PEP, such as yourself, that the necessary cases have been considered (and tested in the implementation) and semantics won’t change. On the other hand, I thought the purpose of the PEP was to evaluate the behavior changes it does cause, which means that implementation details involved in avoiding behavior changes in other edge cases might be an unnecessary distraction.",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/11",
+              "author": "carljm",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "PEP 709: Inlined comprehensions"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "carljm"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-40816f33",
+      "title": "Compatibility with other Python implementations",
+      "status": "open",
+      "summary": "The decision is still open on whether other Python implementations should adapt to the changes in behavior, such as the handling of `UnboundLocalError` vs `NameError`.",
+      "rationale": "There is debate over whether the changes in behavior, such as the handling of `UnboundLocalError` vs `NameError`, should be considered a change to the language and thus require adaptation by other implementations.",
+      "evidence": [
+        {
+          "post_id": "17",
+          "quote": "user-visible effects beyond just performance (on tracebacks and the output of `locals()`, as described in the PEP), albeit minor ones, it could be considered a change to the language, and other implementations may want to adapt to those effects.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/17",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 0.919
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "No adaptation required",
+          "reason": "Other implementations may not adapt to the changes in behavior.",
+          "evidence": [
+            {
+              "post_id": "16",
+              "quote": "Does it matter? Isn’t this just internal to the CPython implementation? It",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16",
+              "author": "Glenn",
+              "verified": true,
+              "match_score": 0.952
+            }
+          ]
+        },
+        {
+          "name": "Adaptation by other implementations",
+          "reason": "Other implementations may want to adapt to the changes in behavior.",
+          "evidence": [
+            {
+              "post_id": "20",
+              "quote": "Since GraalPy tries to not lag behind CPython more than a year or so, we would be affected by this. Even if it might be considered a minor visible effect and/or an implementation detail, it is always surprising (to me) how much of those details end up being relied upon",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/20",
+              "author": "timfelgentreff",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "carljm",
+        "Glenn",
+        "timfelgentreff"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-61cbf640",
+      "title": "Behavior of comprehensions at module scope",
+      "status": "open",
+      "summary": "The behavior of comprehensions at module scope is still being debated, with suggestions for potential changes.",
+      "rationale": "There is ongoing discussion about whether comprehensions at module scope should be inlined, which could affect the behavior of `locals`, tracebacks, and `UnboundLocalError`/`NameError`.",
+      "evidence": [
+        {
+          "post_id": "26",
+          "quote": "The paragraph you quoted is saying only that comprehensions at module scope (module top level, outside of a function) will not be inlined. That said, @markshannon has suggested offline an approach that could allow those to also be inlined for better consistency; I’m experimenting with that, and will either update the PEP and implementation to inline those also, or to clarify and strengthen the rationale for not doing it.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/26",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Not inlining comprehensions at module scope",
+          "reason": "To maintain consistency with inlining comprehensions inside functions.",
+          "evidence": [
+            {
+              "post_id": "26",
+              "quote": "That said, @markshannon has suggested offline an approach that could allow those to also be inlined for better consistency; I’m experimenting with that, and will either update the PEP and implementation to inline those also, or to clarify and strengthen the rationale for not doing it.",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/26",
+              "author": "carljm",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "PEP 709: Inlined comprehensions"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "carljm"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-afc1f96b",
+      "title": "Will inlining affect tracing and profiling?",
+      "status": "accepted",
+      "summary": "Inlining of comprehensions will affect tracing and profiling.",
+      "rationale": "The PEP and implementation were updated to explicitly state that inlining comprehensions will impact tracing and profiling.",
+      "evidence": [
+        {
+          "post_id": "29",
+          "quote": "I’ve also updated the PEP to mention that tracing/profiling will also be affected; thanks @godlygeek.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/29",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "carljm"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-fab555b9",
+      "title": "Inlining of comprehensions and its effect on debugging",
+      "status": "accepted",
+      "summary": "Inlining of comprehensions will not affect the debugger's ability to track the value of outer variables during comprehension execution.",
+      "rationale": "Inlining comprehensions will not change the behavior of the debugger in terms of tracking the value of outer variables. The outer value of `x` will be stored on the stack while the comprehension is executing, and the debugger will not be able to query this value during comprehension execution.",
+      "evidence": [
+        {
+          "post_id": "31",
+          "quote": "Yes, that should be the behavior.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/31",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "31",
+          "quote": "No, I don’t think this is feasible. In your example, the outer value of `x` will be stored only on the (interpreter’s value) stack while the comprehension is executing, and it’s likely not reasonable to expect pdb to figure out where on the stack it is and go look for it (not to mention that inspecting arbitrary stack locations isn’t part of the frame API exposed to Python, and also that it’s not clear what pdb command would even make sense for this operation.)",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/31",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Allowing the debugger to query the value of outer variables during comprehension execution",
+          "reason": "Not feasible due to the way the interpreter manages stack frames and the limitations of the debugger API.",
+          "evidence": [
+            {
+              "post_id": "31",
+              "quote": "No, I don’t think this is feasible. In your example, the outer value of `x` will be stored only on the (interpreter’s value) stack while the comprehension is executing, and it’s likely not reasonable to expect pdb to figure out where on the stack it is and go look for it (not to mention that inspecting arbitrary stack locations isn’t part of the frame API exposed to Python, and also that it’s not clear what pdb command would even make sense for this operation.)",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/31",
+              "author": "carljm",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "script.py"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "carljm"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-db97dad6",
+      "title": "Will async comprehensions be inlined?",
+      "status": "accepted",
+      "summary": "Async comprehensions will be inlined as part of the implementation.",
+      "rationale": "The implementation automatically inlines async comprehensions without any additional handling, as they are orthogonal to inlining.",
+      "evidence": [
+        {
+          "post_id": "34",
+          "quote": "It does. Async comprehensions are orthogonal to inlining, so it just falls out of the implementation without any additional handling.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/34",
+          "author": "carljm",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [
+        "async comprehensions"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "carljm"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-d0843400",
+      "title": "Is the proposal a concern for Cython?",
+      "status": "open",
+      "summary": "The Steering Council has not explicitly decided if the PEP is a concern for Cython, but Cython developers are relaxed about it.",
+      "rationale": "The Cython developers are not concerned about the changes described in the PEP, as they are mostly focused on Python 3.6 compatibility and the changes do not significantly impact Cython's functionality.",
+      "evidence": [
+        {
+          "post_id": "35",
+          "quote": "I don’t think this PEP is a real concern for Cython. It’s the sort of minor detail where we’re generally relaxed if we don’t quite hit.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/35",
+          "author": "da-woods",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "da-woods"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-44dc3f74",
+      "title": "Argumentless `super()` calls in list generators",
+      "status": "open",
+      "summary": "The question of whether argumentless `super()` calls will work inside list generators is still being debated.",
+      "rationale": "The behavior of argumentless `super()` calls inside list generators is not yet definitively decided.",
+      "evidence": [
+        {
+          "post_id": "37",
+          "quote": "Will argumentless `super()` calls work inside list generators?",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/37",
+          "author": "ptsl",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "38",
+          "quote": "It looks like this does indeed work in a post-PEP-709 world:",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/38",
+          "author": "AlexWaygood",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "39",
+          "quote": "I’m also not sure if the older behaviour, and the same behaviour with generator expressions, is intentional.",
+          "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/39",
+          "author": "ronaldoussoren",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Older behavior and generator expressions",
+          "reason": "The behavior is not yet decided and is seen as an accident of the implementation.",
+          "evidence": [
+            {
+              "post_id": "39",
+              "quote": "I’m also not sure if the older behaviour, and the same behaviour with generator expressions, is intentional.",
+              "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/39",
+              "author": "ronaldoussoren",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "class A",
+        "class B(A)",
+        "super().fnc()"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
+      ],
+      "participants": [
+        "ptsl",
+        "AlexWaygood",
+        "ronaldoussoren"
+      ],
+      "confidence": 1.0
+    }
+  ]
+}
