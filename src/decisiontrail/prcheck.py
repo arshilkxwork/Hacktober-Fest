@@ -7,6 +7,7 @@ posted as a comment on anyone's repository.
 from __future__ import annotations
 
 import re
+import subprocess
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -58,7 +59,19 @@ def parse_diff(diff: str) -> List[FileChange]:
 
 
 def diff_between(repo: str, base: str, head: str = "HEAD") -> str:
-    return git(repo, "diff", "-M", f"{base}...{head}")
+    """The change from the merge base of `base` to `head`. Raises ValueError when git cannot produce it."""
+    for ref in (base, head):
+        if not ref or ref.startswith("-"):
+            raise ValueError(f"Not a git ref: {ref!r}")
+    if git(repo, "rev-parse", "--is-inside-work-tree").strip() != "true":
+        raise ValueError(f"{repo} is not a git checkout")
+    for ref in (base, head):
+        if not git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}").strip():
+            raise ValueError(f"{ref} is not a commit in {repo}. Fetch it first, for example `git fetch origin main`.")
+    result = subprocess.run(["git", "-C", repo, "diff", "-M", f"{base}...{head}", "--"], capture_output=True, text=True)
+    if result.returncode != 0:
+        raise ValueError(f"git diff failed in {repo}: {result.stderr.strip()}")
+    return result.stdout
 
 
 @dataclass

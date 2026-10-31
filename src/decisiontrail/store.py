@@ -16,7 +16,10 @@ def load(path: str) -> List[Decision]:
     if not p.exists():
         return []
     data = json.loads(p.read_text(encoding="utf-8"))
-    return [Decision.from_dict(d) for d in data.get("decisions", [])]
+    try:
+        return [Decision.from_dict(d) for d in data.get("decisions", [])]
+    except (KeyError, TypeError) as exc:
+        raise ValueError(f"{path} is not a DecisionTrail store: a decision is missing {exc}") from exc
 
 
 def save(path: str, decisions: List[Decision], model: str) -> None:

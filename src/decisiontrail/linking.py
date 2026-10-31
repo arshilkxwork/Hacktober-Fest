@@ -175,4 +175,8 @@ def resolve(link: CodeLink, repo: str, files: Optional[Sequence[str]] = None) ->
         if defs:
             path, line = defs[0]
             return CodeLink(path=path, symbol=link.symbol, line=line, commit=link.commit, how=link.how, moved_from=link.path)
+    if link.commit and not git(repo, "rev-parse", "--verify", "--quiet", f"{link.commit}^{{commit}}").strip():
+        # The link was made in a checkout this repo does not contain (or a shallow clone):
+        # renames cannot be followed, so match on the stored path instead of dropping it.
+        return link
     return None

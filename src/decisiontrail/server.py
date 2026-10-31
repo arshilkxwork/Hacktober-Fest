@@ -35,6 +35,9 @@ from .llm import DEFAULT_HOST, DEFAULT_MODEL, OllamaBackend, normalize_host
 from .models import CodeLink, Decision, Thread
 
 ALLOWED_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173"}
+LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+# Discussion hosts the analyzer may fetch from; the CLI itself accepts any Discourse forum.
+ANALYZE_HOSTS = {"github.com", "www.github.com", "discuss.python.org"}
 MAX_BODY = 10 * 1024 * 1024
 MAX_JOBS = 50
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -132,6 +135,12 @@ def check_ollama(host: str, model: str, timeout: float = 3) -> Dict[str, Any]:
     if model not in names:
         return {"reachable": True, "model_available": False, "error": f"Model {model} is not pulled. Run `ollama pull {model}`."}
     return {"reachable": True, "model_available": True, "error": None}
+
+
+def _strings(body: Dict[str, Any], *keys: str) -> None:
+    for key in keys:
+        if body.get(key) is not None and not isinstance(body[key], str):
+            raise ApiError(400, f"{key} must be a string")
 
 
 def fetch_pr_diff(owner: str, name: str, number: int) -> str:
@@ -540,6 +549,7 @@ class App:
     # --- check-pr -----------------------------------------------------------
 
     def check_pr(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        _strings(body, "pr_url", "diff", "repo_path", "base", "head")
         pr_url = (body.get("pr_url") or "").strip()
         diff = body.get("diff") or ""
         repo_path = (body.get("repo_path") or "").strip() or None
@@ -666,9 +676,12 @@ class App:
             return {"job": json.loads(json.dumps(self._job(job_id)))}
 
     def analyze(self, body: Dict[str, Any]) -> Dict[str, Any]:
+        _strings(body, "url", "repo_path")
         url = (body.get("url") or "").strip()
         if not url:
             raise ApiError(400, "url is required")
+        if not (re.match(r"^[\w.-]+/[\w.-]+#\d+$", url) or urllib.parse.urlsplit(url).hostname in ANALYZE_HOSTS):
+            raise ApiError(400, "Give a GitHub issue or pull request URL, owner/repo#123, or a discuss.python.org topic URL")
         repo_path = (body.get("repo_path") or "").strip() or None
         if repo_path:
             repo_path = str(Path(repo_path).expanduser())
@@ -1007,6 +1020,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(405, {"error": "Method not allowed"})
         app = self.server.app  # type: ignore[attr-defined]
         try:
+            host = (self.headers.get("Host") or "").rsplit(":", 1)[0].strip("[]").lower()
+            if host not in LOCAL_HOSTS | {str(self.server.server_address[0]).lower()}:
+                raise ApiError(403, "This API only answers requests addressed to this machine")
+            if method == "POST" and not (self.headers.get("Content-Type") or "").startswith("application/json"):
+                raise ApiError(415, "Send the request body as application/json")
             for verb, pattern, name in ROUTES:
                 m = pattern.match(path)
                 if not m or verb != method:
