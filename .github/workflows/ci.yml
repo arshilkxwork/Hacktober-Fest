@@ -32,3 +32,6 @@ jobs:
               --replay "$dir/model-responses.json" --judge --out "/tmp/replay-$n" > /dev/null
             diff -u "$dir/report.md" "/tmp/replay-$n/report.md"
           done
+          decisiontrail check-pr --store examples/pr-check/decisions.json --diff examples/pr-check/change.diff \
+            --no-repo --output /tmp/pr-check.md > /dev/null
+          diff -u examples/pr-check/report.md /tmp/pr-check.md
