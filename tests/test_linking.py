@@ -54,15 +54,15 @@ def decision():
 
 def test_link_decision_finds_paths_and_symbols(repo, parser_thread):
     links = link_decision(decision(), parser_thread, str(repo))
-    found = {(l.path, l.symbol) for l in links}
+    found = {(link.path, link.symbol) for link in links}
     assert ("parser/core.py", "parse_block") in found
     assert ("parser/core.py", "Tokenizer") in found
     assert ("parser/core.py", None) in found  # "core.py" resolved by suffix
-    assert all(l.commit for l in links)
+    assert all(link.commit for link in links)
 
 
 def test_resolve_follows_rename(repo, parser_thread):
-    link = [l for l in link_decision(decision(), parser_thread, str(repo)) if l.symbol == "parse_block"][0]
+    link = [ln for ln in link_decision(decision(), parser_thread, str(repo)) if ln.symbol == "parse_block"][0]
     run(repo, "mv", "parser/core.py", "parser/blocks.py")
     run(repo, "commit", "-q", "-m", "rename")
     moved = resolve(link, str(repo))

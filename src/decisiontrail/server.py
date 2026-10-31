@@ -336,7 +336,6 @@ class App:
             matched = own or next((t for t in (thread_for(d) for d in decs) if t is not None), None)
             if kind == "analysis":
                 label = "Live analyses"
-                urls = {_url_key(t.url) for _, t in live_threads}
                 one = live_threads[0][1] if len(live_threads) == 1 else None
                 url, title = (one.url, one.title) if one else (None, None)
                 posts = sum(len(t.posts) for _, t in live_threads)

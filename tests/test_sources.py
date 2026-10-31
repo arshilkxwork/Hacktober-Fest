@@ -68,7 +68,9 @@ def test_load_discourse_fetches_missing_posts():
 
 
 def test_load_github_pull_request_includes_review_comments_and_files():
-    user = lambda name: {"login": name}
+    def user(name):
+        return {"login": name}
+
 
     def fetch(url):
         if url.endswith("/issues/7"):
