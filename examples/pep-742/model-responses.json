@@ -869,28 +869,31 @@
     ]
    }
   },
-  "0f60a2ca65ceb1bc7a2709b8b4867d15608293ea0dccd99155e70e834d0061d2": {
+  "bd9abc973eec884cc159c1de420bd3bdd28ba24351ff1bbd7e08123d2582a6f0": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Change the behavior of TypeGuard\nPEP text: PEP 724 previously proposed changing the specified behavior of typing.TypeGuard so\nthat if the return type of the guard is consistent with",
    "response": {
     "match": 0,
-    "reason_agrees": false
+    "pep_phrase": "",
+    "reason_agrees": "not stated"
    }
   },
-  "2bd26396479b80e2ea7b2665cc4fa4301be8ad629e30883af86277425e5230a8": {
+  "a861f150f7b3b097ae16b0c9b61049295044a7e296c2a6a87a0ef0b870e537fe": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Do nothing\nPEP text: Both this PEP and the alternative proposed in PEP 724 have shortcomings. The latter are\ndiscussed above. As for this PEP, it introduces two special forms with v",
    "response": {
-    "match": 5,
-    "reason_agrees": false
+    "match": 0,
+    "pep_phrase": "",
+    "reason_agrees": "not stated"
    }
   },
-  "218ef7fdb9a53e858e3433b840137f20cad8f6a5b7c05568c24fc992fe8dac59": {
+  "725ec238d71cf4a09f9cd7024e32d0fd01d94df81b549a54441df22b3d24a8e6": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Alternative names\nPEP text: This PEP currently proposes the name TypeIs, emphasizing that the special form TypeIs[T]\nreturns whether the argument is of type T, and mirroring\nTypeScr",
    "response": {
     "match": 3,
-    "reason_agrees": true
+    "pep_phrase": "Alternative names were considered, including in an earlier version of this PEP.",
+    "reason_agrees": "not stated"
    }
   }
  }

@@ -42,6 +42,5 @@ Rejected because: The behavior is not yet decided and is seen as an accident of 
 
 ## Code mentioned in the discussion
 
-- `class A`
 - `class B(A)`
 - `super().fnc()`

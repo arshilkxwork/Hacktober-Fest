@@ -27,10 +27,10 @@
         },
         {
           "post_id": "16",
-          "quote": "Does it matter? Isn’t this just internal to the CPython implementation? It",
+          "quote": "Doesn’t matter? Isn’t this just internal to the CPython implementation?",
           "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16",
           "author": "Glenn",
-          "verified": true,
+          "verified": false,
           "match_score": 0.952
         },
         {
@@ -51,10 +51,7 @@
         }
       ],
       "alternatives": [],
-      "code_refs": [
-        "PEP 709: Inlined comprehensions",
-        "PEP 709"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
@@ -62,11 +59,10 @@
       "participants": [
         "tjreedy",
         "carljm",
-        "Glenn",
         "ruro",
         "thomas"
       ],
-      "confidence": 1.0
+      "confidence": 0.8
     },
     {
       "id": "D-17804155",
@@ -254,9 +250,7 @@
           ]
         }
       ],
-      "code_refs": [
-        "PEP 709: Inlined comprehensions"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
@@ -289,10 +283,10 @@
           "evidence": [
             {
               "post_id": "16",
-              "quote": "Does it matter? Isn’t this just internal to the CPython implementation? It",
+              "quote": "Doesn’t matter? Isn’t this just internal to the CPython implementation?",
               "url": "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16",
               "author": "Glenn",
-              "verified": true,
+              "verified": false,
               "match_score": 0.952
             }
           ]
@@ -319,10 +313,9 @@
       ],
       "participants": [
         "carljm",
-        "Glenn",
         "timfelgentreff"
       ],
-      "confidence": 1.0
+      "confidence": 0.67
     },
     {
       "id": "D-61cbf640",
@@ -356,9 +349,7 @@
           ]
         }
       ],
-      "code_refs": [
-        "PEP 709: Inlined comprehensions"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
@@ -552,7 +543,6 @@
         }
       ],
       "code_refs": [
-        "class A",
         "class B(A)",
         "super().fnc()"
       ],

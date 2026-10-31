@@ -80,7 +80,6 @@ Rejected because: While `IsInstance` was proposed, it was not widely liked and `
 
 ## Code mentioned in the discussion
 
-- `peps.python.org`
 - `TypeIs[Typ]`
 - `IsInstance[str]`
 - `TypeGuard[int]`

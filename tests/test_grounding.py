@@ -1,4 +1,4 @@
-from decisiontrail.grounding import locate, normalize, verify_evidence
+from decisiontrail.grounding import locate, normalize, verify_evidence, changes_meaning
 from decisiontrail.models import Evidence
 
 
@@ -32,3 +32,16 @@ def test_made_up_quote_is_not_verified(parser_thread):
 def test_locate_finds_fuzzy_window():
     score, text = locate("keep the parser written in C", "We will keep the parser written in C for now.")
     assert score == 1.0 or text
+
+
+def test_fuzzy_match_that_changes_the_meaning_is_not_verified():
+    # Seen in the PEP 709 run: the post asks "Does it matter?", the model quoted "Doesn't matter?".
+    assert changes_meaning("Doesn't matter? Isn't this just internal", "Does it matter? Isn't this just internal")
+    assert changes_meaning("we should drop the C parser", "we should keep the C parser")
+    assert changes_meaning("it was 2x faster on big files", "it was 2x slower on big files")
+    assert changes_meaning("it took 3 seconds", "it took 30 seconds")
+
+
+def test_formatting_typos_and_dropped_asides_still_verify():
+    assert not changes_meaning("the output of `locals()`), albeit minor", "the output of locals(), as described in the PEP), albeit minor")
+    assert not changes_meaning("we should keep teh C parser.", "We should keep the C parser")

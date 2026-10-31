@@ -77,3 +77,18 @@ def test_resolve_falls_back_to_symbol_without_history(repo):
 
 def test_resolve_returns_none_when_code_is_gone(repo):
     assert resolve(CodeLink(path="gone.py"), str(repo)) is None
+
+
+def test_definitions_skip_docs_and_builtins(tmp_path):
+    import subprocess
+
+    from decisiontrail.linking import find_definitions, refs_from_text
+
+    repo = tmp_path / "r"
+    (repo / "Doc").mkdir(parents=True)
+    (repo / "Doc" / "guide.rst").write_text("def parse_block(text):\n")
+    (repo / "core.py").write_text("def parse_block(text):\n    return text\n")
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    assert find_definitions(str(repo), "parse_block") == [("core.py", 1)]
+    assert refs_from_text("calls `locals()` and `dir()` and `parse_block`")[1] == ["parse_block"]

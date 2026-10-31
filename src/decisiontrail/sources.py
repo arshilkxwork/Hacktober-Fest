@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
@@ -28,8 +29,17 @@ def http_get_json(url: str) -> Any:
     if token and urllib.parse.urlparse(url).hostname == "api.github.com":
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        host = urllib.parse.urlparse(url).hostname
+        if host == "api.github.com" and exc.code in (403, 429):
+            hint = "" if token else " Set GITHUB_TOKEN (in the environment or .env) to raise the limit."
+            raise ValueError(f"GitHub refused {url} (HTTP {exc.code}), most likely its API rate limit.{hint}") from exc
+        if exc.code == 404:
+            raise ValueError(f"{url} was not found (HTTP 404). Check the link, or whether the repository is private.") from exc
+        raise
 
 
 def load_thread(spec: str, fetch: Fetcher = http_get_json) -> Thread:
@@ -119,7 +129,9 @@ def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_js
         files = [f["filename"] for f in _paged(fetch, f"{api}/pulls/{number}/files")]
 
     raw.sort(key=lambda r: r["created_at"])
-    names = {login: _github_name(fetch, login) for login in {r["author"] for r in raw}}
+    # One extra request per participant: only worth spending when a token raises the rate limit.
+    logins = {r["author"] for r in raw}
+    names = {login: _github_name(fetch, login) for login in logins} if os.environ.get("GITHUB_TOKEN") else {}
     posts = [
         Post(
             id=str(i),
@@ -128,7 +140,7 @@ def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_js
             body=r["body"],
             url=r["url"],
             platform="github",
-            display_name=names[r["author"]],
+            display_name=names.get(r["author"], ""),
             path=r.get("path"),
             line=r.get("line"),
         )

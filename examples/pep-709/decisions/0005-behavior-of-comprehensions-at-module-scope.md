@@ -30,8 +30,3 @@ Rejected because: To maintain consistency with inlining comprehensions inside fu
 > "That said, @markshannon has suggested offline an approach that could allow those to also be inlined for better consistency; I’m experimenting with that, and will either update the PEP and implementation to inline those also, or to clarify and strengthen the rationale for not doing it."
 >
 > carljm, [post 26](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/26) (verified)
-
-
-## Code mentioned in the discussion
-
-- `PEP 709: Inlined comprehensions`

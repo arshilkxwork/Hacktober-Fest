@@ -3,8 +3,8 @@
 - Status: accepted
 - Decision ID: D-726bfcfd
 - Sources: https://discuss.python.org/t/pep-709-inlined-comprehensions/24240
-- Participants: tjreedy, carljm, Glenn, ruro, thomas
-- Traceability: 5 of 5 quotes found verbatim in the source
+- Participants: tjreedy, carljm, ruro, thomas
+- Traceability: 4 of 5 quotes found verbatim in the source
 
 ## Decision
 
@@ -24,9 +24,9 @@ The proposal was well-received by the community, with no significant objections 
 >
 > carljm, [post 5](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/5) (verified)
 
-> "Does it matter? Isn’t this just internal to the CPython implementation? It"
+> "Doesn’t matter? Isn’t this just internal to the CPython implementation?"
 >
-> Glenn, [post 16](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16) (verified)
+> Glenn, [post 16](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16) (NOT FOUND in source, check manually)
 
 > "So if I understand it correctly, the behaviour of `locals`, tracebacks and `UnboundLocalError`/`NameError` will change depending on whether `bar` has any references to `x`?"
 >
@@ -35,9 +35,3 @@ The proposal was well-received by the community, with no significant objections 
 > "The Steering Council has decided to accept this PEP for 3.12, provided the implementation can be finished and submitted by May 22 (and preferably sooner :)."
 >
 > thomas, [post 36](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/36) (verified)
-
-
-## Code mentioned in the discussion
-
-- `PEP 709: Inlined comprehensions`
-- `PEP 709`

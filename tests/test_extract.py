@@ -117,3 +117,10 @@ def test_no_topics_means_no_extraction_calls(parser_thread):
     backend = FakeBackend([], topics=[])
     assert extract_thread(parser_thread, backend) == []
     assert backend.prompts == []
+
+
+def test_code_refs_drop_urls_pep_titles_and_toy_classes():
+    from decisiontrail.extract import is_code_ref
+
+    assert not any(is_code_ref(r) for r in ["peps.python.org", "https://x.org/a", "PEP 709: Inlined comprehensions", "class A"])
+    assert all(is_code_ref(r) for r in ["typing.TypeIs", "@typing.override", "Python/compile.c", "from __future__ import annotations"])

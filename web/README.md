@@ -1,7 +1,9 @@
 # DecisionTrail web app
 
-React + TypeScript front end for DecisionTrail. It talks only to the local
-DecisionTrail API (`/api/*`); every number and decision it shows comes from there.
+React + TypeScript front end for DecisionTrail. The app pages talk only to the
+local DecisionTrail API (`/api/*`) and show what it returns. The landing page
+works without the API, so it shows a few decisions and numbers copied from the
+committed example runs in `examples/`.
 
 ## Development
 

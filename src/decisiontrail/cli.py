@@ -70,22 +70,32 @@ def cmd_extract(args: argparse.Namespace) -> int:
     return 0
 
 
+def _existing_store(path: str) -> str:
+    if not Path(path).is_file():
+        raise ValueError(f"No decision store at {path}. Run `decisiontrail extract` first, or pass --store.")
+    return path
+
+
 def cmd_export(args: argparse.Namespace) -> int:
-    decisions = store.load(args.store)
+    decisions = store.load(_existing_store(args.store))
     paths = store.export_markdown(decisions, args.out)
     _log(f"Wrote {len(paths)} decision records to {args.out}/")
     return 0
 
 
 def cmd_check_pr(args: argparse.Namespace) -> int:
-    decisions = store.load(args.store)
+    decisions = store.load(_existing_store(args.store))
     if args.diff:
         diff = Path(args.diff).read_text(encoding="utf-8")
+        # A diff file on its own is matched on stored paths, unless a checkout is named.
+        repo = None if args.no_repo or args.repo is None else args.repo
     else:
-        diff = prcheck.diff_between(args.repo, args.base, args.head)
+        repo = args.repo or "."
+        diff = prcheck.diff_between(repo, args.base, args.head)
+        repo = None if args.no_repo else repo
     changes = prcheck.parse_diff(diff)
-    matches = prcheck.match_decisions(decisions, changes, repo=args.repo if not args.no_repo else None)
-    report = prcheck.render_report(matches)
+    matches = prcheck.match_decisions(decisions, changes, repo=repo)
+    report = prcheck.render_report(matches, diff=diff)
     if args.output:
         Path(args.output).write_text(report, encoding="utf-8")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -172,7 +182,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("check-pr", help="list past decisions about the code a change touches")
     p.add_argument("--store", default=".decisiontrail/decisions.json")
-    p.add_argument("--repo", default=".")
+    p.add_argument("--repo", help="git checkout to diff and resolve links in (default: the current directory with --base)")
     p.add_argument("--no-repo", action="store_true", help="match on stored paths only, without reading the repo")
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--base", help="base ref, e.g. origin/main")
@@ -206,7 +216,24 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def load_dotenv(path: str = ".env") -> None:
+    """Read KEY=VALUE lines from .env (git-ignored) into the environment, without overriding it."""
+    p = Path(path)
+    if not p.is_file():
+        return
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key.startswith("export "):
+            key = key[len("export "):].strip()
+        os.environ.setdefault(key, value.strip().strip("\"'"))
+
+
 def main(argv: Optional[List[str]] = None) -> int:
+    load_dotenv()
     args = build_parser().parse_args(argv)
     try:
         return args.func(args)

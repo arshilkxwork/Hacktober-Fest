@@ -3,8 +3,8 @@
 - Status: open
 - Decision ID: D-40816f33
 - Sources: https://discuss.python.org/t/pep-709-inlined-comprehensions/24240
-- Participants: carljm, Glenn, timfelgentreff
-- Traceability: 3 of 3 quotes found verbatim in the source
+- Participants: carljm, timfelgentreff
+- Traceability: 2 of 3 quotes found verbatim in the source
 
 ## Decision
 
@@ -27,9 +27,9 @@ There is debate over whether the changes in behavior, such as the handling of `U
 
 Rejected because: Other implementations may not adapt to the changes in behavior.
 
-> "Does it matter? Isn’t this just internal to the CPython implementation? It"
+> "Doesn’t matter? Isn’t this just internal to the CPython implementation?"
 >
-> Glenn, [post 16](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16) (verified)
+> Glenn, [post 16](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/16) (NOT FOUND in source, check manually)
 
 
 ### Adaptation by other implementations

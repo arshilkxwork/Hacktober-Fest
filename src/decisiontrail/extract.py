@@ -182,6 +182,14 @@ def _evidence(items: Iterable[Dict[str, Any]]) -> List[Evidence]:
     return out
 
 
+_NOT_CODE = re.compile(r"://|^[\w.-]+\.(org|com|net|io|dev)(/\S*)?$|^PEP\s*\d+|^(class|def|struct)\s+\w{1,2}$", re.I)
+
+
+def is_code_ref(ref: str) -> bool:
+    """Drop what the model lists as code but is a URL, a PEP title or a one-letter example class."""
+    return bool(ref) and len(ref) <= 80 and not _NOT_CODE.search(ref)
+
+
 def parse_decisions(raw: Dict[str, Any], thread: Thread) -> List[Decision]:
     decisions = []
     for d in raw.get("decisions", []) or []:
@@ -206,7 +214,7 @@ def parse_decisions(raw: Dict[str, Any], thread: Thread) -> List[Decision]:
                     for a in d.get("rejected_alternatives", []) or []
                     if str(a.get("name", "")).strip()
                 ],
-                code_refs=[str(c).strip() for c in d.get("code_refs", []) or [] if str(c).strip()],
+                code_refs=[c for c in (str(c).strip() for c in d.get("code_refs", []) or []) if is_code_ref(c)],
                 sources=[thread.url],
             )
         )
@@ -289,7 +297,10 @@ def extract_thread(
             progress(f"{thread.source}: excerpt {i}/{len(chunks)} (posts {posts[0].id}-{posts[-1].id})")
         excerpt = build_prompt(thread, posts, i, len(chunks))
         topics = backend.complete_json(TOPICS_PROMPT, excerpt, TOPICS_SCHEMA).get("topics", []) or []
-        questions = [str(t.get("question", "")).strip() for t in topics][:MAX_TOPICS]
+        questions = [str(t.get("question", "")).strip() for t in topics]
+        if len(questions) > MAX_TOPICS and progress:
+            progress(f"  {len(questions) - MAX_TOPICS} more topics in this excerpt not extracted: {'; '.join(questions[MAX_TOPICS:])[:300]}")
+        questions = questions[:MAX_TOPICS]
         for question in filter(None, questions):
             focus = f"{excerpt}\nRecord only the decision about this question: {question}"
             batches.append(parse_decisions(backend.complete_json(SYSTEM_PROMPT, focus, SCHEMA), thread))

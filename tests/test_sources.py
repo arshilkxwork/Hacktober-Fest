@@ -67,7 +67,8 @@ def test_load_discourse_fetches_missing_posts():
     assert len(calls) == 2
 
 
-def test_load_github_pull_request_includes_review_comments_and_files():
+def test_load_github_pull_request_includes_review_comments_and_files(monkeypatch):
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     def user(name):
         return {"login": name}
 
@@ -106,3 +107,20 @@ def test_thread_json_round_trip(tmp_path, parser_thread):
     save_thread(parser_thread, str(path))
     loaded = load_thread(str(path))
     assert loaded == parser_thread
+
+
+def test_github_profile_names_are_skipped_without_a_token(monkeypatch):
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        if url.endswith("/issues/1"):
+            return {"title": "t", "body": "b", "user": {"login": "alice"}, "created_at": "2024-01-01T00:00:00Z", "html_url": "u"}
+        if "/comments" in url:
+            return []
+        raise AssertionError(url)
+
+    thread = load_github("o", "r", 1, fetch)
+    assert thread.posts[0].display_name == "" and not any("/users/" in u for u in calls)
+

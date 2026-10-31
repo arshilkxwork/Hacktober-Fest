@@ -137,7 +137,7 @@ export function AnalyzerForm({ onStarted, className }: { onStarted: (job: Job) =
         </h2>
         <p className="max-w-2xl text-sm text-fg-muted text-pretty">
           The local model reads every post, records each decision with the alternatives that lost and the reasons given, and keeps
-          only decisions whose quotes are found word for word in the thread.
+          only decisions with at least one quote found in the thread, word for word or with only formatting and typos changed.
         </p>
       </div>
 

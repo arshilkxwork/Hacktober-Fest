@@ -135,5 +135,4 @@ Rejected because: Various other names were proposed but ultimately rejected due 
 
 ## Code mentioned in the discussion
 
-- `peps.python.org`
 - `TypeIs`

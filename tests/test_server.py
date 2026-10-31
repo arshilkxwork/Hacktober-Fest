@@ -9,10 +9,13 @@ from pathlib import Path
 import pytest
 
 from decisiontrail import server
-from decisiontrail.sources import save_thread
 from test_extract import RAW, FakeBackend
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
+# What the API should report, computed from the example files themselves.
+THREADS = sorted(p.parent.name for p in EXAMPLES.glob("*/thread.json"))
+POSTS = sum(len(json.loads(p.read_text())["posts"]) for p in EXAMPLES.glob("*/thread.json"))
+DECISION_IDS = {d["id"] for p in EXAMPLES.glob("*/decisions.json") for d in json.loads(p.read_text())["decisions"]}
 
 
 def _closed_port():
@@ -68,7 +71,7 @@ def test_datasets_and_merged_decisions(api):
 
     decisions = api("GET", "/api/decisions")[1]["decisions"]
     ids = [d["id"] for d in decisions]
-    assert len(ids) == len(set(ids)) == 17
+    assert len(ids) == len(set(ids)) == len(DECISION_IDS)
     adopt = next(d for d in decisions if d["id"] == "D-6cc1785a")
     # pep-742 and pr-check share ids; the pr-check copy carries the code links.
     assert adopt["datasets"] == ["pep-742", "pr-check"]
@@ -101,21 +104,21 @@ def test_decision_detail_timeline(api):
 def test_stats_are_consistent(api):
     stats = api("GET", "/api/stats")[1]
     t = stats["totals"]
-    assert t["decisions"] == 17 == t["accepted"] + t["rejected"] + t["open"]
+    assert t["decisions"] == len(DECISION_IDS) == t["accepted"] + t["rejected"] + t["open"]
     assert sum(r["count"] for r in stats["status_breakdown"]) == t["decisions"]
     assert t["verified_quotes"] <= t["total_quotes"]
-    assert t["discussions"] == 2 and t["posts"] == 39 + 33
+    assert t["discussions"] == len(THREADS) and t["posts"] == POSTS
     assert sum(w["posts"] for w in stats["discussion_activity"]) == t["posts"]
     assert all(time.strptime(w["week"], "%Y-%m-%d").tm_wday == 0 for w in stats["discussion_activity"])
     dated = sum(1 for d in api("GET", "/api/decisions")[1]["decisions"] if d["date"])
     assert sum(r["accepted"] + r["rejected"] + r["open"] for r in stats["decisions_over_time"]) == dated
-    assert {r["dataset"] for r in stats["by_discussion"]} == {"pep-709", "pep-742", "pr-check"}
+    assert {r["dataset"] for r in stats["by_discussion"]} == set(THREADS) | {"pr-check"}
 
 
 def test_threads(api):
     threads = api("GET", "/api/threads")[1]["threads"]
-    assert [t["id"] for t in threads] == ["pep-709", "pep-742"]
-    assert threads[1]["first_post_at"] == "2024-02-11T04:39:19.272Z"
+    assert [t["id"] for t in threads] == THREADS
+    assert next(t for t in threads if t["id"] == "pep-742")["first_post_at"] == "2024-02-11T04:39:19.272Z"
     thread = api("GET", "/api/threads/pep-742")[1]["thread"]
     assert len(thread["posts"]) == 33 and len(thread["posts"][0]["excerpt"]) <= 280
     assert api("GET", "/api/threads/pr-check")[0] == 404
@@ -129,7 +132,11 @@ def test_check_pr_with_diff_text_finds_revived_name(api):
     assert body["changed_files"] == [{"path": "src/typing_extensions.py", "old_path": None, "added": 3, "removed": 0}]
     assert len(body["matches"]) == 6
     conflicts = [c for m in body["matches"] for c in m["conflicts"]]
-    assert any(c["alternative"] == "TypeNarrower" and c["line"] == "TypeNarrower = TypeIs" for c in conflicts)
+    narrower = [c for c in conflicts if c["alternative"].startswith("TypeNarrow")]
+    # One card for the revived name, carrying the reason its quote supports (post 29).
+    assert len(narrower) == 1 and narrower[0]["line"] == "TypeNarrower = TypeIs"
+    assert "awkward" in narrower[0]["reason"]
+    assert "brings back an approach the discussion rejected" in body["report_markdown"]
     assert body["report_markdown"].startswith("## DecisionTrail")
     assert api("POST", "/api/check-pr", {})[0] == 400
     assert api("POST", "/api/check-pr", {"pr_url": "https://example.com/x"})[0] == 400
@@ -165,12 +172,11 @@ def _wait(api, job_id):
 
 
 def test_analyze_with_fake_backend(api, monkeypatch, parser_thread):
-    thread_file = api.tmp / "thread.json"
-    save_thread(parser_thread, str(thread_file))
+    monkeypatch.setattr(server.sources, "load_thread", lambda spec: parser_thread)
     monkeypatch.setattr(server, "check_ollama", lambda host, model, timeout=3: {"reachable": True, "model_available": True, "error": None})
     api.app.make_backend = lambda: FakeBackend([RAW])
 
-    status, body, _ = api("POST", "/api/analyze", {"url": str(thread_file)})
+    status, body, _ = api("POST", "/api/analyze", {"url": "https://discuss.python.org/t/test-thread/1"})
     assert status == 202 and body["job"]["status"] in ("queued", "running", "done")
     job = _wait(api, body["job"]["id"])
     assert job["status"] == "done", job["error"]
@@ -193,10 +199,9 @@ def test_analyze_with_fake_backend(api, monkeypatch, parser_thread):
     assert api("GET", "/api/jobs")[1]["jobs"][0]["id"] == job["id"]
 
 
-def test_analyze_fails_cleanly_without_ollama(api, parser_thread):
-    thread_file = api.tmp / "thread.json"
-    save_thread(parser_thread, str(thread_file))
-    job = _wait(api, api("POST", "/api/analyze", {"url": str(thread_file)})[1]["job"]["id"])
+def test_analyze_fails_cleanly_without_ollama(api, monkeypatch, parser_thread):
+    monkeypatch.setattr(server.sources, "load_thread", lambda spec: parser_thread)
+    job = _wait(api, api("POST", "/api/analyze", {"url": "https://discuss.python.org/t/test-thread/1"})[1]["job"]["id"])
     assert job["status"] == "error" and "Ollama" in job["error"]
     assert job["result"] is None
     assert not (api.tmp / "dt" / "decisions.json").exists()
@@ -253,3 +258,29 @@ def test_link_resolves_to_connected_repo(api, monkeypatch):
     assert status == 201 and body["repo"]["linked_decisions"] == 1
     d = api("GET", "/api/decisions/D-live0001")[1]["decision"]
     assert d["links"][0]["repo"] == "me/checkout" and d["origin"] == "analysis"
+
+
+def test_api_refuses_requests_a_web_page_could_forge(api):
+    # A cross-site form or text/plain POST skips the CORS preflight, so the body must be JSON.
+    assert api("POST", "/api/check-pr", {"diff": "x"}, headers={"Content-Type": "text/plain"})[0] == 415
+    # DNS rebinding: a request addressed to another host name is refused.
+    assert api("GET", "/api/health", headers={"Host": "evil.example:8765"})[0] == 403
+    # Only GitHub and discuss.python.org discussions, never local files or other hosts.
+    assert api("POST", "/api/analyze", {"url": "/etc/passwd.json"})[0] == 400
+    assert api("POST", "/api/analyze", {"url": "https://evil.example/t/x/1"})[0] == 400
+    assert api("POST", "/api/check-pr", {"diff": ["not", "text"]})[0] == 400
+
+
+def test_check_pr_refuses_option_like_and_unknown_refs(api, tmp_path):
+    import subprocess
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@e", "commit", "-q", "--allow-empty", "-m", "x"], check=True)
+    status, body, _ = api("POST", "/api/check-pr", {"repo_path": str(repo), "base": "--output=/tmp/owned"})
+    assert status == 400 and "Not a git ref" in body["error"]
+    status, body, _ = api("POST", "/api/check-pr", {"repo_path": str(repo), "base": "no-such-branch"})
+    assert status == 400 and "not a commit" in body["error"]
+    assert not list(tmp_path.glob("owned*")) and not Path("/tmp/owned...HEAD").exists()
+

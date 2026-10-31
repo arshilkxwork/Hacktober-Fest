@@ -80,7 +80,7 @@ function ResultDecisions({ ids, decisions, loading }: { ids: string[]; decisions
       <EmptyState
         compact
         title="No decisions were saved"
-        description="The model found no decision whose quotes appear word for word in the thread, so nothing was added. The log shows what it read."
+        description="The model found no decision with a quote that appears in the thread, so nothing was added. The log shows what it read."
       />
     );
   }

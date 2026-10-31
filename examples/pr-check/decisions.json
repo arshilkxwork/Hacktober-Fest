@@ -119,7 +119,6 @@
         }
       ],
       "code_refs": [
-        "peps.python.org",
         "TypeIs[Typ]",
         "IsInstance[str]",
         "TypeGuard[int]"
@@ -371,7 +370,6 @@
         }
       ],
       "code_refs": [
-        "peps.python.org",
         "TypeIs"
       ],
       "links": [
