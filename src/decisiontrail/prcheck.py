@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from .linking import git, refs_from_text, resolve, tracked_files
 from .models import Decision
@@ -135,3 +135,31 @@ def render_report(matches: Sequence[Match], limit: int = 10) -> str:
     if len(matches) > limit:
         lines += ["", f"...and {len(matches) - limit} more."]
     return "\n".join(lines) + "\n"
+
+
+def added_lines(diff: str) -> List[str]:
+    """The lines a unified diff adds, without the leading "+"."""
+    out: List[str] = []
+    in_hunk = False
+    for line in diff.splitlines():
+        if line.startswith("diff --git "):
+            in_hunk = False
+        elif HUNK_RE.match(line):
+            in_hunk = True
+        elif in_hunk and line.startswith("+"):
+            out.append(line[1:])
+    return out
+
+
+def find_conflicts(match: Match, changes: str) -> List[Dict[str, str]]:
+    """Rejected alternatives of a matched decision that the diff (`changes`, unified diff text) adds back by name."""
+    added = added_lines(changes)
+    conflicts: List[Dict[str, str]] = []
+    for alt in match.decision.alternatives:
+        # "TypeNarrow[er]" should also catch "TypeNarrower".
+        names = {alt.name.strip("` "), re.sub(r"[`\[\]]", "", alt.name).strip()}
+        patterns = [re.compile(rf"(?<!\w){re.escape(n)}(?!\w)", re.I) for n in names if len(n) >= 4]
+        line = next((ln for ln in added if any(p.search(ln) for p in patterns)), None)
+        if line is not None:
+            conflicts.append({"alternative": alt.name, "reason": alt.reason, "line": line.strip()})
+    return conflicts
