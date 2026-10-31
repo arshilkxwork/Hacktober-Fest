@@ -1,0 +1,578 @@
+{
+  "generator": "decisiontrail 0.1.0",
+  "model": "qwen2.5:7b-instruct",
+  "decisions": [
+    {
+      "id": "D-814f1a4a",
+      "title": "Adoption of PEP 705",
+      "status": "accepted",
+      "summary": "PEP 705 was adopted with the changes suggested by the community, including clarifications and improvements to the rationale and documentation.",
+      "rationale": "The proposal was well-received, with feedback leading to improvements in the PEP. The author addressed the feedback and merged a PR to address the issues raised.",
+      "evidence": [
+        {
+          "post_id": "4",
+          "quote": "PR to address it has now merged.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/4",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "5",
+          "quote": "`typing.ReadOnly` is now available in typing-extensions 4.9.0-rc1 (thanks @Jelle!)",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/5",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Using `Final[]` instead of `ReadOnly[]`",
+          "reason": "Final is documented as preventing redefinition in subclasses, which does not fit with the intended use of ReadOnly.",
+          "evidence": [
+            {
+              "post_id": "7",
+              "quote": "The problem is that the Final annotation PEP, PEP-591, only discusses traditional classes, not structural subtypes. The Protocol and TypedDict types are not mentioned at all, though they were introduced in the same version of Python.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/7",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "typing.ReadOnly"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "alicederyn"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-e7f33331",
+      "title": "Name of the qualifier",
+      "status": "accepted",
+      "summary": "The type modifier was named `ReadOnly`.",
+      "rationale": "The name `ReadOnly` was chosen over `Readable` because it better conveys the promise that the key will never be written to, and there is precedent in the `Buffer` protocol placeholders in typeshed.",
+      "evidence": [
+        {
+          "post_id": "12",
+          "quote": "There is some precedent for the distinction between `Readable` and `ReadOnly` with the `Buffer` protocol placeholders in typeshed, where we have `ReadableBuffer` and `ReadOnlyBuffer`.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+          "author": "Daverball",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "12",
+          "quote": "I understand why it is a more attractive name for the modifier, but it would also be a shame if we reject a future PEP that defines a `Readable` modifier that is distinct from `ReadOnly` based on the fact that this PEP was accepted with `ReadOnly` meaning `Readable`.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+          "author": "Daverball",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "17",
+          "quote": "I think `ReadOnly` is the right term to use here and in the future. `Readable` doesn’t convey the right meaning.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/17",
+          "author": "erictraut",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "26",
+          "quote": "ReadOnly is in typing-extensions and pyright (including the new online playground) if you want to try it.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/26",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Readable",
+          "reason": "To ensure future consistency, if/when we want to extend the type modifier to work with additional types.",
+          "evidence": [
+            {
+              "post_id": "12",
+              "quote": "Since according to the inheritance rules outlined in PEP 705 we are allowed to override a `ReadOnly` key with a writeable `key` it might be better to call the modifier `Readable` to ensure future consistency, if/when we want to extend the type modifier to work with additional types.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "12",
+              "quote": "I do think the name `ReadOnly` better conveys the promise that this key will never be written to inside a function that uses it, so I understand why it is a more attractive name for the modifier, but it would also be a shame if we reject a future PEP that defines a `Readable` modifier that is distinct from `ReadOnly` based on the fact that this PEP was accepted with `ReadOnly` meaning `Readable`.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "13",
+              "quote": "I’m happy to consider this. I’d like to do it on the basis of what is the best name for what you are calling “Readable”, though, not whether there’s a distinction based on TypedDict vs Protocol vs base class.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/13",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "14",
+              "quote": "These aliases are used consistently across typeshed so I think at least as far as naming goes, this is a well established precedent.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/14",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "12",
+              "quote": "it would also be a shame if we reject a future PEP that defines a `Readable` modifier that is distinct from `ReadOnly` based on the fact that this PEP was accepted with `ReadOnly` meaning `Readable`.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "14",
+              "quote": "I’m not sure there’s a name that is completely unambiguous both from a receiving and giving perspective.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/14",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        },
+        {
+          "name": "Immutable",
+          "reason": "It is ambiguous and could be interpreted in two different ways.",
+          "evidence": [
+            {
+              "post_id": "15",
+              "quote": "I would normally refer to what you’re calling “readonly” as “immutable”, which is a lot clearer of a distinction. I may be missing nuance though?",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/15",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "19",
+              "quote": "I had a second look at this, and it seems to me now that in my comment here, it may be more appropriate to translate `foo: ReadOnly[T]` to `__setattr__(self, name: Literal[\"foo\"], val: Never) -> None` instead of `__setattr__(self, name: Literal[\"foo\"], val: T) -> Never`.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/19",
+              "author": "randolf-scholz",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "16",
+              "quote": "The problem with `Immutable` is that it’s ambiguous, does it mean we create an immutable reference to the value, so the value itself can never be modified (i.e. any attribute or method access that would modify the object’s internal state is forbidden), or does it mean it’s invalid to change where the reference points to? When I hear immutable in the context of Python I think of the former, not the latter.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/16",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "typing.ReadOnly",
+        "ReadOnly[T]"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "Daverball",
+        "erictraut",
+        "alicederyn",
+        "randolf-scholz"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-7883be42",
+      "title": "Behavior of `ReadOnly`",
+      "status": "accepted",
+      "summary": "ReadOnly keys in TypedDicts are read-only in the sense that they cannot be modified through the structural subtype, but not immutable in the sense that the underlying dictionary can still be modified.",
+      "rationale": "The rationale is that ReadOnly should prevent redefinition in structural subtypes, but not prevent the underlying dictionary from being modified. This is to ensure that the type checker can enforce the read-only constraint without making the runtime implementation overly restrictive.",
+      "evidence": [
+        {
+          "post_id": "9",
+          "quote": "This does not mean the items are immutable: a reference to the underlying dictionary could still exist with a different but compatible type in which those items have mutator operations.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/9",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "9",
+          "quote": "This could be used, for instance, to update the item in a concurrent thread.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/9",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Final",
+          "reason": "Final is documented as preventing redefinition in subclasses, which does not fit with the intended use of ReadOnly.",
+          "evidence": [
+            {
+              "post_id": "7",
+              "quote": "“[Final] is documented as preventing redefinition in subclasses […] This does not fit with the intended use of `ReadOnly`”.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/7",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 0.991
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "typing.ReadOnly"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "alicederyn"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-4ffb9cfc",
+      "title": "Compatibility with existing type checkers",
+      "status": "accepted",
+      "summary": "The proposal to support `ReadOnly` in TypedDicts is accepted, and the rationale clarifies the distinction between `Final` and `ReadOnly`.",
+      "rationale": "The rationale explains that `ReadOnly` should not imply total immutability and that it is intended to restrict the view of the dict, not the underlying data. The discussion also clarifies that `ReadOnly` should not be used in a structural type at all, as it conflicts with the behavior of `Final`.",
+      "evidence": [
+        {
+          "post_id": "7",
+          "quote": "This is not compatible with how we want ReadOnly to behave; the equivalent example should be legal in any type-checker:",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/7",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "7",
+          "quote": "I hope this has made things clearer and not muddier!",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/7",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "12",
+          "quote": "Since according to the inheritance rules outlined in PEP 705 we are allowed to override a `ReadOnly` key with a writeable `key` it might be better to call the modifier `Readable` to ensure future consistency, if/when we want to extend the type modifier to work with additional types.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+          "author": "Daverball",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "17",
+          "quote": "I think `ReadOnly` is the right term to use here and in the future. `Readable` doesn’t convey the right meaning. Let’s stick with `ReadOnly`.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/17",
+          "author": "erictraut",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "26",
+          "quote": "ReadOnly is in typing-extensions and pyright (including the new online playground) if you want to try it.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/26",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Using `Final` for `ReadOnly`",
+          "reason": "Final is documented as preventing redefinition in subclasses, which does not fit with the intended use of ReadOnly.",
+          "evidence": [
+            {
+              "post_id": "7",
+              "quote": "The problem is that the Final annotation PEP, PEP-591, only discusses traditional classes, not structural subtypes.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/7",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "7",
+              "quote": "This is not compatible with how we want ReadOnly to behave; the equivalent example should be legal in any type-checker:",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/7",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        },
+        {
+          "name": "Readable",
+          "reason": "It does not convey the right meaning and could be confused with `Readable` in the context of `Buffer` protocols.",
+          "evidence": [
+            {
+              "post_id": "12",
+              "quote": "While for a `TypedDict` the distinction between a `Readable` and `ReadOnly` key barely matters, the distinction becomes more important when applied to a `Protocol` and nominal types.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "13",
+              "quote": "I’m happy to consider this. I’d like to do it on the basis of what is the best name for what you are calling “Readable”, though, not whether there’s a distinction based on TypedDict vs Protocol vs base class.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/13",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "14",
+              "quote": "These aliases are used consistently across typeshed so I think at least as far as naming goes, this is a well established precedent.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/14",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "typing.ReadOnly",
+        "ReadOnly",
+        "TypedDict",
+        "Protocol",
+        "nominal types"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "alicederyn",
+        "Daverball",
+        "erictraut"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-f213eabc",
+      "title": "Include a `read_only=True` class argument",
+      "status": "rejected",
+      "summary": "The proposal to include a `read_only=True` class argument was rejected.",
+      "rationale": "The proposal was considered but ultimately rejected due to the lack of symmetry with the feature set available for stating whether keys are required and the desire for a more permissive runtime implementation.",
+      "evidence": [
+        {
+          "post_id": "10",
+          "quote": "I was sad to see that the `readonly=True` class argument is no longer in the PEP. I would personally want to default to declaring TypedDicts as read-only when possible, so I’d like to make that as easy as possible. The current iteration of the PEP would require repeating `ReadOnly[]` on every item, which is verbose.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/10",
+          "author": "Jelle",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "11",
+          "quote": "The other way up I think? But I am happy for this to be left to type-checkers either way.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/11",
+          "author": "alicederyn",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Include a `read_only=True` class argument",
+          "reason": "Lack of symmetry with the feature set for marking keys as required and the desire for a more permissive runtime implementation.",
+          "evidence": [
+            {
+              "post_id": "10",
+              "quote": "I was sad to see that the `readonly=True` class argument is no longer in the PEP. I would personally want to default to declaring TypedDicts as read-only when possible, so I’d like to make that as easy as possible. The current iteration of the PEP would require repeating `ReadOnly[]` on every item, which is verbose.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/10",
+              "author": "Jelle",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "Jelle",
+        "alicederyn"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-d3424c4a",
+      "title": "Whether to include a `Mutable[]` qualifier",
+      "status": "open",
+      "summary": "The discussion is ongoing about whether to include a `Mutable[]` qualifier for marking individual keys as mutable in a read-only `TypedDict`.",
+      "rationale": "The discussion centers around the need for symmetry in the feature set available for stating whether keys are required and the potential for a `Mutable[]` qualifier to provide more flexibility.",
+      "evidence": [
+        {
+          "post_id": "10",
+          "quote": "For more flexibility, we could add a `read_only=True` class argument and a `Mutable[]` qualifier to mark individual keys as mutable in a TypedDict that defaults to read-only.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/10",
+          "author": "Jelle",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "No `Mutable[]` qualifier",
+          "reason": "The current iteration of the PEP would require repeating `ReadOnly[]` on every item, which is verbose.",
+          "evidence": [
+            {
+              "post_id": "10",
+              "quote": "I was sad to see that the `readonly=True` class argument is no longer in the PEP. I would personally want to default to declaring TypedDicts as read-only when possible, so I’d like to make that as easy as possible. The current iteration of the PEP would require repeating `ReadOnly[]` on every item, which is verbose.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/10",
+              "author": "Jelle",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "Jelle"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-385be424",
+      "title": "Adopt the proposal as a whole",
+      "status": "accepted",
+      "summary": "The proposal for `ReadOnly` type modifier is limited to `TypedDict` and not extended to other contexts like `Protocol` or `ABC`.",
+      "rationale": "The discussion concluded that `ReadOnly` is the appropriate term to use for the type modifier, as it better conveys the intended meaning and avoids ambiguity. The community agreed that the proposal should be adopted as is, with the understanding that it may be extended in future PEPs.",
+      "evidence": [
+        {
+          "post_id": "17",
+          "quote": "I think `ReadOnly` is the right term to use here and in the future. `Readable` doesn’t convey the right meaning. Let’s stick with `ReadOnly`.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/17",
+          "author": "erictraut",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "28",
+          "quote": "I would appreciate it if you would consider not limiting it to `TypedDict`.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/28",
+          "author": "beauxq",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "32",
+          "quote": "I think we’re ready.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/32",
+          "author": "Jelle",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "29",
+          "quote": "The PEP already says so; see the last sentence in PEP 705 – TypedDict: Read-only items | peps.python.org.",
+          "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/29",
+          "author": "Jelle",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [
+        {
+          "name": "Readable",
+          "reason": "It is considered less clear and more ambiguous.",
+          "evidence": [
+            {
+              "post_id": "12",
+              "quote": "I do think the name `ReadOnly` better conveys the promise that this key will never be written to inside a function that uses it, so I understand why it is a more attractive name for the modifier, but it would also be a shame if we reject a future PEP that defines a `Readable` modifier that is distinct from `ReadOnly` based on the fact that this PEP was accepted with `ReadOnly` meaning `Readable`.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/12",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "15",
+              "quote": "I would normally refer to what you’re calling “readonly” as “immutable”, which is a lot clearer of a distinction. I may be missing nuance though?",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/15",
+              "author": "alicederyn",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "16",
+              "quote": "The problem with `Immutable` is that it’s ambiguous, does it mean we create an immutable reference to the value, so the value itself can never be modified (i.e. any attribute or method access that would modify the object’s internal state is forbidden), or does it mean it’s invalid to change where the reference points to? When I hear immutable in the context of Python I think of the former, not the latter.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/16",
+              "author": "Daverball",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        },
+        {
+          "name": "Extending `ReadOnly` to `Protocol` and `ABC`",
+          "reason": "Too complex and broad for the initial PEP, better to keep it simple and manageable.",
+          "evidence": [
+            {
+              "post_id": "28",
+              "quote": "This is something that I would like outside of `TypedDict`. It would solve this problem that I’ve run into a few times.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/28",
+              "author": "beauxq",
+              "verified": true,
+              "match_score": 1.0
+            },
+            {
+              "post_id": "29",
+              "quote": "I would understand if you want to limit the scope to keep things simple, but if so, it might be worth mentioning that `ReadOnly` could be extended in a future PEP to solve similar problems outside of `TypedDict`.",
+              "url": "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867/29",
+              "author": "Jelle",
+              "verified": true,
+              "match_score": 1.0
+            }
+          ]
+        }
+      ],
+      "code_refs": [
+        "ReadOnly[T]",
+        "TypedDict",
+        "Protocol",
+        "ABC"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867"
+      ],
+      "participants": [
+        "erictraut",
+        "beauxq",
+        "Jelle",
+        "Daverball",
+        "alicederyn"
+      ],
+      "confidence": 1.0
+    }
+  ]
+}

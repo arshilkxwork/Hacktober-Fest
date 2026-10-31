@@ -1,0 +1,109 @@
+{
+  "generator": "decisiontrail 0.1.0",
+  "model": "qwen2.5:7b-instruct",
+  "decisions": [
+    {
+      "id": "D-e2e0269b",
+      "title": "Adoption of the @typing.override decorator proposal",
+      "status": "accepted",
+      "summary": "The `@typing.override` decorator was accepted with the name as proposed.",
+      "rationale": "The name was chosen to be consistent with existing typing decorators and to clearly indicate the purpose of the decorator.",
+      "evidence": [
+        {
+          "post_id": "11",
+          "quote": "The SC has decided to accept this PEP!",
+          "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/11",
+          "author": "brettcannon",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "1",
+          "quote": "We’d like to put PEP 698 forward for discussion.",
+          "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/1",
+          "author": "stroxler",
+          "verified": true,
+          "match_score": 1.0
+        },
+        {
+          "post_id": "6",
+          "quote": "I’ve put up a PR to include this idea in the “Rejected Alternatives” selection:",
+          "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/6",
+          "author": "stroxler",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [
+        "github.com/python/peps",
+        "pep-0698.rst"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839"
+      ],
+      "participants": [
+        "brettcannon",
+        "stroxler"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-7c4e87ab",
+      "title": "Compatibility with third-party libraries",
+      "status": "accepted",
+      "summary": "It was decided that a way to tell type checkers that a third-party library's `override` decorator should act like `@typing.override` is to use a `typing.TYPE_CHECKING` shim.",
+      "rationale": "The approach was suggested by AlexWaygood and involves using a shim to make the third-party `override` decorator behave like `@typing.override` during type checking, while allowing for custom behavior at runtime.",
+      "evidence": [
+        {
+          "post_id": "8",
+          "quote": "One way of handling this kind of thing is to do a `typing.TYPE_CHECKING` shim, like so:",
+          "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/8",
+          "author": "AlexWaygood",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [
+        "a.py"
+      ],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839"
+      ],
+      "participants": [
+        "AlexWaygood"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "D-e5729a25",
+      "title": "Relationship with @abstractmethod",
+      "status": "accepted",
+      "summary": "The PEP recommends type checkers support a strict mode where all method overrides must be marked with the decorator, whether abstract or not.",
+      "rationale": "The PEP recommends this to ensure consistency and clarity in method overriding, regardless of whether the method is abstract or not.",
+      "evidence": [
+        {
+          "post_id": "10",
+          "quote": "I’m not sure there is much need for special treatment of abstract methods. The PEP recommends type checkers support a strict mode where all method overrides must be marked with the decorator, whether abstract or not.",
+          "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/10",
+          "author": "a-reich",
+          "verified": true,
+          "match_score": 1.0
+        }
+      ],
+      "alternatives": [],
+      "code_refs": [],
+      "links": [],
+      "sources": [
+        "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839"
+      ],
+      "participants": [
+        "a-reich"
+      ],
+      "confidence": 1.0
+    }
+  ]
+}

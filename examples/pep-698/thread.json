@@ -1,0 +1,129 @@
+{
+  "source": "discourse:discuss.python.org/t/20839",
+  "title": "PEP 698: A typing.override decorator",
+  "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839",
+  "posts": [
+    {
+      "id": "1",
+      "author": "stroxler",
+      "created_at": "2022-11-07T16:24:02.558Z",
+      "body": "Hi All,\n\nWe’d like to put PEP 698 forward for discussion.\n\nThe proposal is for a new decorator `@typing.override` that marks a method as overriding a method in some superclass. Having this decorator - inspired by similar constructs in Java, C++, Typescript, Kotlin, Scala, Swift, and C# - will enable static type checkers to detect potential bugs where a base class method is renamed but child classes were not modified.\n\nPrevious discussion has been on typing-sig, in particular here is the original discussion.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/1",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Steven Troxler",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "2",
+      "author": "NeilGirdhar",
+      "created_at": "2022-11-07T17:49:09.550Z",
+      "body": "Really looking forward to this!\n\nJust curious, but why does it list this as a disadvantage?\n\n“Adding or removing base class methods that impact overrides will require updating subclass code.”\n\nIsn’t being forced to update subclass code one of the benefits of the decorator?\n\nAlso, I proposed something similar in the ipromise library.  I allowed for the possibility of indicating from which base class the overridden base method comes from.  In some situations, that can help readers of code know where to look for the method, and it’s a bit stricter (if one base class removes, say, the `__call__` method, but another one adds it–and you meant to override the one from the first base class).  If you’re so inclined, feel free to include this under rejected/considered ideas.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/2",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Neil Girdhar",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "3",
+      "author": "stroxler",
+      "created_at": "2022-11-08T16:04:06.953Z",
+      "body": "Good point regarding the odd choice of words!\n\nI think the disadvantages wording should be tweaked to emphasize a verbosity tradeoff - what we had intended to point out was that (as with static types in general) this introduces another tradeoff where code becomes more verbose in order to gain some safety.\n\nAs for specifying the parent class, my initial impression is that while it could be useful (especially making the overridden class explicit to help with code navigation), it probably isn’t worth including in PEP 698 for three reasons:\n\n- if in a single commit you move a method from one base to another, you as the author are likely aware of what you did, so the safety benefits are relatively small\n\n- I’m guessing there wouldn’t be too much use of this feature. Since it’s relatively easy to implement this capability using runtime logic in a library, that makes me thing we don’t need to bake it into `typing.py` all of the type checkers.\n\nBut I’d like to get opinions from others as well, I just posted a link to this discussion in typing-sig so we can see if there is a range of opinions.\n\nIf the consensus is not to include that functionality, we could add it under the considered ideas.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/3",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Steven Troxler",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "4",
+      "author": "NeilGirdhar",
+      "created_at": "2022-11-08T17:49:23.198Z",
+      "body": "> it probably isn’t worth including in PEP 698 for three reasons:\n\nYes, I completely agree with your reasons, and I figured you would probably have thought of this.  I was just wondering if you should mention these reasons in the PEP under “rejected alternatives”?  In a few years, this extension may be posted on python-ideas, and then it  might be useful for that poster to see your rejection reasoning.\n\nThat said, `@typing.override` could support both usage with and without the base class.  But I agree that use of the base class would happen extremely rarely (only in a very complicated inheritance hierarchy).  But anyway, the use of a base class could always be added later if someone makes a compelling case for it.\n\n> If the consensus is not to include that functionality, we could add it under the considered ideas.\n\nFair enough",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/4",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Neil Girdhar",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "5",
+      "author": "mkorpela",
+      "created_at": "2022-11-13T07:49:25.649Z",
+      "body": "The first versions of ”runtime” overriding decorator actually contained the class name inheritance - In Python, how do I indicate I'm overriding a method? - Stack Overflow but that really did not bring any benefits. From my point of view it only made it harder to use. Big jump was to discover a way to leave that out.\n\nNobody has asked for explicitly naming the class in overrides lib in the past 10 years, so I would assume it is not needed.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/5",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Mikko Korpela",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "6",
+      "author": "stroxler",
+      "created_at": "2022-11-18T19:44:59.501Z",
+      "body": "Thanks to both Niel for the suggestion and Mikko for sharing past experience with this approach.\n\nI’ve put up a PR to include this idea in the “Rejected Alternatives” selection:\n\n      github.com/python/peps\n\n        PEP 698: Include discussion of pinning the ancestor class\n\n      `python:main` ← `stroxler:698-reject-specifying-ancestor-class`\n\n          opened 07:42PM - 18 Nov 22 UTC\n\n            stroxler\n\n            +46\n            -0\n\nThis idea came up in the PEP discussion:\nhttps://discuss.python.org/t/pep-698-a…-typing-override-decorator/20839/4\n\nWe decided against including this, but as promised I am including the idea and potential upside as well as our rationale for not including it in the \"Rejected Alternatives\" section.\n\nChecked code with\n```\npre-commit run --files pep-0698.rst\n```",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/6",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Steven Troxler",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "7",
+      "author": "encukou",
+      "created_at": "2023-01-12T11:43:03.733Z",
+      "body": "Sorry for asking so late. (I’ve seen PEP 702, `typing.deprecated`, which isn’t on Discourse yet, and thought about a question that could also apply here.)\n\nIf a third-party library provides a different `override` decorator, is there a good way to tell type checkers that it should act like `@typing.override`?",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/7",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "8",
+      "author": "AlexWaygood",
+      "created_at": "2023-01-12T11:55:53.617Z",
+      "body": "> If a third-party library provides a different `override` decorator, is there a good way to tell type checkers that it should act like `@typing.override`?\n\nOne way of handling this kind of thing is to do a `typing.TYPE_CHECKING` shim, like so:\n\n```\n# module a.py\nfrom typing import TYPE_CHECKING\n\nif TYPE_CHECKING:\n    from typing import override as override\nelse:\n    def override(func):\n        # custom implementation here\n\n```\n\nAnd then from everywhere else in your codebase, you could just do `from a import override`. Type checkers will just think that `a.override` is a reexport of `typing.override`, but at runtime you can have any custom behaviour you like.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/8",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Alex Waygood",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "9",
+      "author": "dgutson",
+      "created_at": "2023-01-20T12:53:07.368Z",
+      "body": "Hi, I’m coming from C++ so I could be a bit biased.\n\nShould be any reference or relationship with @abstractmethod? For example, it would be nice, I think, some mode/flag where the override decorator is explicitly required when overriding an @abstractmethod.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/9",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Daniel Gutson",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "10",
+      "author": "a-reich",
+      "created_at": "2023-01-20T17:08:47.455Z",
+      "body": "I’m not sure there is much need for special treatment of abstract methods. The PEP recommends type checkers support a strict mode where all method overrides must be marked with the decorator, whether abstract or not.",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/10",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "A Reich",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "11",
+      "author": "brettcannon",
+      "created_at": "2023-01-30T19:23:36.344Z",
+      "body": "The SC has decided to accept this PEP!",
+      "url": "https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839/11",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Brett Cannon",
+      "path": null,
+      "line": null
+    }
+  ],
+  "files": []
+}

@@ -1,0 +1,217 @@
+{
+  "source": "discourse:discuss.python.org/t/19756",
+  "title": "PEP 688, take 2: Making the buffer protocol accessible in Python",
+  "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756",
+  "posts": [
+    {
+      "id": "1",
+      "author": "Jelle",
+      "created_at": "2022-10-06T23:59:24.756Z",
+      "body": "I just posted a revised version of PEP 688, which now proposes a Python-level API for the buffer protocol, adding the new `__buffer__` and `__release_buffer__` dunders. This allows for buffer protocol support in the type system, and also allows Python classes to implement the buffer protocol.\n\nThe previous discussion was here: PEP 688: Making the buffer protocol accessible in Python\n\nPossible topics of discussion:\n\n- The PEP still proposes removing the special case where “bytes” is supposed to also mean “bytearray” and “memoryview” in annotations. This proposal got some pushback in the previous thread.\n\n- Does the interaction between the C buffer API and the proposed Python API make sense?\n\n- A few opportunities for bikeshedding: where should the `Buffer` ABC live, what should the new special methods be called, should we add any other related useful tools to the standard library?",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/1",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "2",
+      "author": "jeff5",
+      "created_at": "2022-10-08T09:31:30.164Z",
+      "body": "As this feature is a feature of the language, as well as of the C-API, is it possible to specify the Python behaviour without reference to the implementation language, then the change to the C-API and slots separately? I’m not arguing against discussing the reference implementation as evidence of feasibility.\n\nMy interest in this is not primarily typing (the category the PEP has).\n\nThe example is not enough for my understanding of the possibilities in general because it is a special case. Taking the `memoryview` in the constructor shape-locks the `bytearray` for the lifetime of the object by upping the export count, but suppose we wanted not to?\n\nLet `MyBuffer` admit an `append` operation delegated to the `bytearray`, presumably only possible when the `MyBuffer` is not exporting. The `__buffer__` method would have to return a fresh `memoryview`, and as long as any had not been returned to `__release_buffer__`, calling `append` would fail, right?\n\n`MyBuffer.__release_buffer__` would have to call `memoryview.release`. I think I understand this is not the same `memoryview` handed out, although it wraps the same `Py_buffer`.\n\nIt seems like, in this story, the `MyBuffer` is not conscious of its export count, since the `bytearray` takes care of it invisibly. It could track them if it wanted to by pairing off the calls, but not in a boolean as now.\n\nWould this make a good mutable example?",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/2",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jeff Allen",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "3",
+      "author": "Jelle",
+      "created_at": "2022-10-12T02:36:09.503Z",
+      "body": "Thanks for the feedback! I put up a PR at PEP 688: Enhancements from discussion by JelleZijlstra · Pull Request #2832 · python/peps · GitHub that\n\n- extends the specification to focus more on the behavior, not on the C slots\n\n- expands the `MyBuffer` example with an `extend` method similar to what you outline\n\nLet me know if this addresses your concerns.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/3",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "4",
+      "author": "jeff5",
+      "created_at": "2022-10-12T07:52:38.407Z",
+      "body": "Yes, I think that’s better for starting with the Python behaviour.\n\nIt is challenging to follow what exactly is happening with wrapping in a `memoryview`. However, these specifications always need careful reading, and one’s interpretation to be checked with the reference implementation.\n\nWhat I expect to see in a hypothetical reference `slot_bf_buffer`, for example, is code that begins like `vectorcall_method(&_Py_ID(__buffer__), ...`) and discards the `memoryview` wrapper it gets back. And in  `slot_bf_buffer_release` I expect code that synthesises a new `memoryview` wrapper around the passed `Py_buffer`.\n\nThis doesn’t seem quite what is implied by:\n\n> When this method is invoked through the buffer API (for example, through `memoryview.release`), the passed `memoryview` is the same object as was returned by `__buffer__`.\n\nThe signatures of `slot_bf_buffer` and `slot_bf_buffer_release` are:\n\n```\ntypedef int (*getbufferproc)(PyObject *, Py_buffer *, int);\ntypedef void (*releasebufferproc)(PyObject *, Py_buffer *);\n\n```\n\nso there is no opportunity to guarantee as you have in `MyBuffer.__realease_buffer__` that:\n\n```\n    def __release_buffer__(self, view: memoryview) -> None:\n        assert self.view is view  # guaranteed to be true\n        ...\n\n```\n\nIf I use the Python API, calling `__buffer__`and `__release_buffer__` myself, then I have to pass exactly the `memoryview` I received, since I have no other way to be sure I an returning the same `Py_buffer`. But when `memoryview.release` does this to a buffer object defined in Python, it will call the slot containing `slot_bf_buffer_release` and the buffer object in Python will receive the new ephemeral `memoryview`.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/4",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jeff Allen",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "5",
+      "author": "encukou",
+      "created_at": "2022-10-12T09:05:56.642Z",
+      "body": "Sorry for bad news, but:\n\n> if a buffer is writable, it must define the `bf_releasebuffer` slot, so that the buffer can be released when a consumer is done writing to it.\n\nThat’s not actually true. The `bf_releasebuffer` slot is needed when there’s extra cleanup to be done, other than decref(view->obj). That’s orthogonal to the data being writable (`PyBUF_WRITABLE`).\n\nFor example, NumPy arrays are mutable, but set `bf_releasebuffer` to NULL.\n\nTypes with mutable “shape”, like `bytearray` which has `append`, generally need to implement  `bf_releasebuffer` so they can prevent resizing while a buffer is exported. But  I don’t think “mutable shape” is a very useful property for this PEP, and anyway it’s not the only possible reason for  implementing `bf_releasebuffer`.\n\nI believe this came from reading the argument parsing docs? The wording there is unfortunate – by a stretch, one could argue it’s technically correct (if you read it as giving a specific local definition to the terms “mutable”/“read-only”), but it definitely suggests wrong stuff for uses outside arg parsing.\n\nI guess `tp_as_buffer` could grow field(s) for “not supported” and/or “~guaranteed support”  `PyBUF*` flags? At the moment it’s really only available at runtime by EAFP, as far as I know. Or perhaps it’s not useful for the C API, and could just be Python class attributes or some kind of typing-only hints.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/5",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "6",
+      "author": "Jelle",
+      "created_at": "2022-10-14T04:28:40.836Z",
+      "body": "Thanks for bringing this up! I got this idea from a post in the previous thread: PEP 688: Making the buffer protocol accessible in Python - #29 by storchaka. It took me a while to convince myself that it’s true, but maybe it’s not! The line of thinking that persuaded me was that anything that allows a writable buffer must keep track of whether someone is already writing to it in order to be thread-safe, and therefore it must have a `bf_releasebuffer` slot. Among the stdlib’s buffer classes, it also seems to be true that all the mutable ones have `bf_releasebuffer` slots. Numpy gets around this with manual refcounting: the buffer returned by `bf_getbuffer` holds a reference that the consumer must eventually DECREF, which signals to the numpy array that its consumer is gone.\n\nIf we can’t use `bf_releasebuffer` to signal mutability, I think we’ll have to go back to a single `Buffer` type, with no affordance for mutability in the type system. There just isn’t an elegant way to support it.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/6",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "7",
+      "author": "Jelle",
+      "created_at": "2022-10-14T04:41:41.873Z",
+      "body": "The current implementation does indeed provide this guarantee, and that’s why I am comfortable making this guarantee in the spec. The prototype is here: cpython/typeobject.c at de3a4bc518f7137a7a3c86cc7fc28b70fcb42013 · JelleZijlstra/cpython · GitHub\n\nI implemented it this way because we need to ensure that when the consumer of the buffer created through `__buffer__` releases it, we call `__release_buffer__` on the same Python object. But if we just returned the buffer inside the memoryview we got from `__buffer__`, there’s no way to get back to the original object. So the implementation creates another wrapper that holds a reference to the memoryview and the Python object. When the buffer is released, we properly call `__release_buffer__` while also cleaning up whatever is inside the memoryview.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/7",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "8",
+      "author": "ronaldoussoren",
+      "created_at": "2022-10-14T10:44:23.773Z",
+      "body": "One use-case where a bf_releasebuffer for a read-only buffer might come up is accessing buffers managed by some other system, for example when interfacing with a system that uses a moving GC.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/8",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Ronald Oussoren",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "9",
+      "author": "jeff5",
+      "created_at": "2022-10-15T09:05:35.665Z",
+      "body": "> The current implementation does indeed provide this guarantee, and that’s why I am comfortable making this guarantee in the spec. …\n\n> I implemented it this way because we need to ensure that when the consumer of the buffer created through `__buffer__` releases it, we call `__release_buffer__` on the same Python object. But if we just returned the buffer inside the memoryview we got from `__buffer__`, there’s no way to get back to the original object.\n\nNot the `.obj` of the `Py_buffer` being released? I know this can be `NULL`, in principle, but that’s when there isn’t meaningfully an underlying object. We are interested in the case of a C client, so it would call `PyBuffer_Release()`. That seems to manage ok given just a `Py_buffer`.\n\nThe guarantee seems to make this quite complicated, and I don’t see why it is needed.\n\nEdit: Ok, I see the leap I’m making. The `.buf` of the buffer in the `memoryview` is the `bytearray` (in the example of use) not the `MyBuffer` instance itself. So you want a second layer to this where `view->obj` in  `PyBuffer_Release(Py_buffer *view)` is the  the `MyBuffer` instance.\n\nEdit 2: Having got that clear, I think it is now difficult to see how an object would give you, through the `__buffer__` method, a `memoryview` that truly represented a buffer view of itself, rather than only ever one bytes-like member of itself, of a built-in type that was already capable of of the buffer interface. Is it useful enough if it only does that?",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/9",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jeff Allen",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "10",
+      "author": "jeff5",
+      "created_at": "2022-10-15T12:43:59.558Z",
+      "body": "I wonder if a good examples to illustrate the idea would be:\n\n- objects that hold images in a compressed form, but will export their image as an array of decoded integer values.\n\n- an audio equivalent of that.\n\n- a sparse array that unpacks to an array whilst exported.\n\nI looked at `mmap` as a possible example, and it expects to be released, whether read-only or not.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/10",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jeff Allen",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "11",
+      "author": "encukou",
+      "created_at": "2022-10-17T12:15:30.106Z",
+      "body": "> anything that allows a writable buffer must keep track of whether someone is already writing to it in order to be thread-safe\n\nThere’s no rule that objects must be thread-safe. Thread safety is a very nice property to have, sure, and I’d expect well-behaved objects to have it, but I’d also expect some objects that expose raw memory to eschew it in favor of performance.\n\nAlso, while \"one writer or N readers” is a good way to ensure safety, it isn’t strictly necessary. (Think of a buffer of results, where each result can be set independently by a different thread. It might not be too performant, but it should work.)\n\n> Among the stdlib’s buffer classes, it also seems to be true that all the mutable ones have `bf_releasebuffer` slots.\n\nYes. That definitely contributes to the confusion.\n\n> Numpy gets around this with manual refcounting: the buffer returned by `bf_getbuffer` holds a reference that the consumer must eventually DECREF, which signals to the numpy array that its consumer is gone.\n\nAll Python buffers hold that reference (`view->obj`). `PyBuffer_Release` DECREFs it. There’s nothing manual about it from NumPy’s point of view.\n\nGoing back to C argument parsing which I think is the source of this confusion:\n\n- `PyArg_ParseTuple` can take an object with `bf_releasebuffer=NULL` and return its buffer as `const char*`, because of `PyArg_ParseTuple`’s very special semantics: its inputs outlive its outputs, and so it doesn’t need an INCREF (i.e. the returned `const char*` has a hidden borrowed reference).\n\n- `PyArg_ParseTuple` can not take objects with `bf_releasebuffer` and convert them to `const char*`, because it has no way to call `bf_releasebuffer` when the buffer is no longer needed. To handle these types, the user must ask for `Py_buffer` (or a Python object).\n\nSo, simple C functions (ones that use `PyArg_ParseTuple` and deal with `const char*` internally) don’t allow types with `bf_releasebuffer` set, which means that they disallow common mutable types such as `bytearray`. It’s easy to read that as “mutable types have `bf_releasebuffer` set”, especially when there are no good counterexamples in the stdlib.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/11",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "12",
+      "author": "Jelle",
+      "created_at": "2022-10-26T04:08:59.693Z",
+      "body": "I decided to give up on distinguishing mutable vs. immutable buffers for now, especially because Introspection and \"mutable XOR shared\" semantics for PyBuffer may give us a more robust way to tell them apart in the future. This will make the PEP simpler but still useful for typing. A new version of the PEP just live at PEP 688 – Making the buffer protocol accessible in Python | peps.python.org.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/12",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "13",
+      "author": "encukou",
+      "created_at": "2022-10-26T11:44:35.395Z",
+      "body": "FYI, I filed gh-98712 to clarify the C arg parsing docs.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/13",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "14",
+      "author": "Jelle",
+      "created_at": "2022-11-06T14:39:25.075Z",
+      "body": "Unless some additional feedback comes up, I plan to submit the PEP to the SC in the next few weeks.\n\nOver the last week I have been reviewing `bytes` type annotations in typeshed (Track review of `bytes` types · Issue #9006 · python/typeshed · GitHub); so far I have covered nearly all of the stdlib. This uncovered many more places where the standard library accepts `bytes` but not `bytearray`, which in my mind strengthens the case for dropping the implicit conversion between the two. I posted some tweaks to the PEP (PEP 688: Small tweaks by JelleZijlstra · Pull Request #2866 · python/peps · GitHub) to reflect that.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/14",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "15",
+      "author": "encukou",
+      "created_at": "2022-11-07T14:05:30.029Z",
+      "body": "I haven’t reviewed `__release_buffer__` yet.  I’ll need to find a chunk of time to wrap my head around it again.\n\nCurrently it’s not clear to me when to call `__release_buffer__` vs. when a wrapper or memoryview does it for you: e.g. the PEP says “It is also possible to call `__release_buffer__` on a C class that implements `bf_releasebuffer`” – when should you do it, and what happens if you should do it but don’t (and vice versa)?\n\nI took the reference implementation and added `assert (self->ob_exports >= 0);` to `array_buffer_relbuf`. That asserts a C-level invariant – it’s definitely not something I should be able to trigger through Python code. But I can:\n\n```\n>>> import array\n>>> a = array.array('b', range(5))\n>>> m = a.__buffer__(0)\n>>> a.__release_buffer__(m)\n>>> a.__release_buffer__(m)\npython: ./Modules/arraymodule.c:2606: array_buffer_relbuf: Assertion `self->ob_exports >= 0' failed.\n\n```",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/15",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "16",
+      "author": "encukou",
+      "created_at": "2022-11-07T14:37:08.197Z",
+      "body": "FWIW, when I get time I want to check if the following would be a better (simpler/safer) approach:\n\n-\n`memoryview` itself gets an extra field for “Python re-exporter”\n\n- A Python implementation of `__buffer__` must return `memoryview(..., exporter=self)`.\n\n- The `__buffer__`→`tp_getbuffer` wrapper checks this\n\n-\n`memorview` calls the re-exporter’s `__release_buffer__` on `release()` (unless released already).\n\n- The `tp_releasebuffer`→`__release_buffer__` wrapper only checks the argument and calls `release()` on it, thus only calling code that’s safe to call from Python.\n\n- You never need to call `__release_buffer__` manually, but if you do, nothing bad happens (there’ll probably be recursion/reentrancy issues to solve in guaranteeing this)",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/16",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "17",
+      "author": "Jelle",
+      "created_at": "2022-11-07T14:54:14.311Z",
+      "body": "> Currently it’s not clear to me when to call `__release_buffer__` vs. when a wrapper or memoryview does it for you: e.g. the PEP says “It is also possible to call `__release_buffer__` on a C class that implements `bf_releasebuffer`” – when should you do it, and what happens if you should do it but don’t (and vice versa)?\n\nYou should call it when you want to release a memoryview you got from a call to `__buffer__`. It’s probably going to be very rarely necessary, because you can just do `with obj.__buffer__(flags)` and the memoryview’s `__exit__` method will call the buffer for you. Similarly, if you don’t ever call it, the runtime will release the buffer for you when the memoryview you got from `__buffer__` gets GCed. I will add some discussion of this to the PEP.\n\n> I took the reference implementation and added `assert (self->ob_exports >= 0);` to `array_buffer_relbuf`. That asserts a C-level invariant – it’s definitely not something I should be able to trigger through Python code. But I can:\n\nGood catch! I’m testing a change to the reference implementation now that basically calls `memoryview.release` from `wrap_releasebuffer`, so that memoryview takes care of checking that we’re not re-releasing an already released buffer.\n\n> FWIW, when I get time I want to check if the following would be a better (simpler/safer) approach:\n\nThis isn’t too different from how the reference implementation already works. However, instead of setting a flag on the memoryview returned from `__buffer__`, I wrap it in another memoryview that remembers its Python exporter by setting its `obj` to a wrapper type that references the Python exporter and the underlying memoryview that `__buffer__` returned. This avoids changes to memoryview:\n\n```\n>>> class X:\n...     def __buffer__(self, flags): return memoryview(b\"x\")\n...\n>>> mv = memoryview(\n\n>>> mv = memoryview(X())\n>>> mv.obj\n<_buffer_wrapper object at 0x10120e670>\n>>> import gc\n>>> gc.get_referents(mv.obj)\n[<memory at 0x10114cd50>, <__main__.X object at 0x1011ab990>]\n\n```",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/17",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "18",
+      "author": "encukou",
+      "created_at": "2022-11-07T15:14:21.444Z",
+      "body": "> This avoids changes to memoryview\n\nHow important is that, really?\n\n> You should call it when you want to release a memoryview you got from a call to `__buffer__`. It’s probably going to be very rarely necessary, because you can just do `with obj.__buffer__(flags)` and the memoryview’s `__exit__` method will call the buffer for you.\n\nIt won’t:\n\n```\n>>> class Foo:\n...     def __buffer__(self, flags):\n...         print('__buffer__ called')\n...         return memoryview(b\"here's your data\")\n...     def __release_buffer__(self, view):\n...         print('important releasing code here')\n...         view.release()\n...\n>>> with Foo().__buffer__(0):\n...     pass\n...\n__buffer__ called\n>>> # release not called!\n\n```\n\nHence the idea of requiring `memoryview(..., exporter=self)` in `def __buffer__`.",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/18",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Petr Viktorin",
+      "path": null,
+      "line": null
+    },
+    {
+      "id": "19",
+      "author": "Jelle",
+      "created_at": "2022-11-07T16:26:01.885Z",
+      "body": "> How important is that, really?\n\nI’d be open to adding new Python APIs if that’s helpful, but every new Python API has some cost (documentation, bikeshedding over naming/semantics, having to reason about correctness if it’s used in unexpected ways). So I’d prefer to avoid introducing a new Python API if possible.\n\n> It won’t:\n\n```\n>>> class Foo:\n...     def __buffer__(self, flags):\n...         print('__buffer__ called')\n...         return memoryview(b\"here's your data\")\n...     def __release_buffer__(self, view):\n...         print('important releasing code here')\n...         view.release()\n...\n>>> with Foo().__buffer__(0):\n...     pass\n...\n__buffer__ called\n>>> # release not called!\n\n```\n\nIf you call `__buffer__` directly, you’re on your own. I see this as similar to the context manager protocol: `__enter__` and `__exit__` should be called in pairs, but if you call `__enter__` directly and don’t call `__exit__`, the runtime isn’t going to call it for you.\n\nIf you use `with memoryview(Foo()):` instead, `Foo.__release_buffer__` will be called.\n\n> Hence the idea of requiring `memoryview(..., exporter=self)` in `def __buffer__`.\n\nSuch a requirement wouldn’t be enforceable in code that directly calls `__buffer__` (at least, not without bigger changes to the language).",
+      "url": "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/19",
+      "platform": "discourse:discuss.python.org",
+      "display_name": "Jelle Zijlstra",
+      "path": null,
+      "line": null
+    }
+  ],
+  "files": []
+}
