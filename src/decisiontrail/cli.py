@@ -1,4 +1,4 @@
-"""Command line interface: fetch, extract, export, check-pr."""
+"""Command line interface: fetch, extract, export, check-pr, eval-pep."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from . import prcheck, sources, store
+from . import pep_eval, prcheck, sources, store
 from .extract import extract_thread
 from .identity import IdentityResolver
 from .linking import link_decision, tracked_files
@@ -96,6 +96,30 @@ def cmd_check_pr(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_eval_pep(args: argparse.Namespace) -> int:
+    rst = pep_eval.fetch_pep(args.pep) if not args.pep_file else Path(args.pep_file).read_text(encoding="utf-8")
+    expected = pep_eval.rejected_ideas(rst)
+    title = pep_eval.pep_header(rst, "Title") or ""
+    spec = args.thread or pep_eval.pep_header(rst, "Discussions-To")
+    if not spec:
+        _log("The PEP has no Discussions-To header; pass --thread")
+        return 2
+    thread = sources.load_thread(spec)
+    thread, dropped = pep_eval.drop_leaked_posts(thread, rst)
+    _log(f"PEP {args.pep}: {len(expected)} rejected ideas; discussion has {len(thread.posts)} posts ({len(dropped)} PEP copies removed)")
+    backend = _backend(args)
+    decisions = extract_thread(thread, backend, progress=_log)
+    results = pep_eval.evaluate(expected, decisions, judge=backend if args.judge else None)
+    report = pep_eval.render_report(args.pep, title, thread, dropped, decisions, results, args.judge)
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "report.md").write_text(report, encoding="utf-8")
+    store.save(str(out / "decisions.json"), decisions, backend.model)
+    store.export_markdown(decisions, str(out / "decisions"))
+    print(report)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="decisiontrail", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -131,6 +155,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--output", help="also write the report to this file")
     p.set_defaults(func=cmd_check_pr)
 
+    p = sub.add_parser("eval-pep", help="recover a PEP's rejected ideas from its discussion")
+    p.add_argument("pep", type=int)
+    p.add_argument("--pep-file", help="read the PEP source from a file instead of GitHub")
+    p.add_argument("--thread", help="discussion to use instead of the PEP's Discussions-To link")
+    p.add_argument("--judge", action="store_true", help="confirm matches with the local model")
+    p.add_argument("--out", required=True, help="directory for report.md, decisions.json and records")
+    _model_args(p)
+    p.set_defaults(func=cmd_eval_pep)
     return parser
 
 
