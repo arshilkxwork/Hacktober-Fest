@@ -24,3 +24,11 @@ jobs:
           pip install -e ".[dev]"
       - name: Unit tests
         run: pytest -q
+      - name: Replay the examples with the recorded model output
+        run: |
+          for dir in examples/pep-*/; do
+            n=$(basename "$dir" | cut -d- -f2)
+            decisiontrail eval-pep "$n" --pep-file "$dir/pep-$n.rst" --thread "$dir/thread.json" \
+              --replay "$dir/model-responses.json" --judge --out "/tmp/replay-$n" > /dev/null
+            diff -u "$dir/report.md" "/tmp/replay-$n/report.md"
+          done
