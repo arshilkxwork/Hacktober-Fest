@@ -1,5 +1,5 @@
 from decisiontrail.models import Alternative, CodeLink, Decision, Evidence
-from decisiontrail.prcheck import match_decisions, parse_diff, render_report
+from decisiontrail.prcheck import Match, added_lines, find_conflicts, match_decisions, parse_diff, render_report
 
 DIFF = """diff --git a/parser/core.py b/parser/core.py
 index 1111111..2222222 100644
@@ -65,3 +65,31 @@ def test_report_lists_rejected_alternatives_with_sources():
 
 def test_report_when_nothing_matches():
     assert "No recorded decisions" in render_report([])
+
+
+REVIVE = """diff --git a/src/names.py b/src/names.py
+--- a/src/names.py
++++ b/src/names.py
+@@ -10,2 +10,4 @@
+ TypeIs = _special_form("TypeIs")
++# kept for old code
++TypeNarrower = TypeIs
+"""
+
+
+def test_added_lines_skips_context_and_headers():
+    assert added_lines(REVIVE) == ["# kept for old code", "TypeNarrower = TypeIs"]
+
+
+def test_find_conflicts_reports_a_revived_rejected_alternative():
+    decision = Decision(
+        id="D-1", title="Name of the new form", status="accepted", summary="", rationale="",
+        alternatives=[
+            Alternative("TypeNarrow[er]", "Too awkward and jargon-y."),
+            Alternative("IsInstance", "Not the preferred name."),
+            Alternative("TI", "Too short to search for."),
+        ],
+    )
+    conflicts = find_conflicts(Match(decision, 3, []), REVIVE)
+    assert conflicts == [{"alternative": "TypeNarrow[er]", "reason": "Too awkward and jargon-y.", "line": "TypeNarrower = TypeIs"}]
+
