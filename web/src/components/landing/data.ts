@@ -124,7 +124,7 @@ export const PEP742_DECISIONS: { id: string; title: string; status: DecisionStat
 /** Totals of the committed runs, as reported in examples/README.md and decisions.json. */
 export const RUNS = {
   pep742: { posts: 33, decisions: 7, alternatives: 17, quotes: 62, verified: 62, minutes: 5 },
-  pep709: { posts: 39, decisions: 10, alternatives: 7, quotes: 37, verified: 37 },
+  pep709: { posts: 39, decisions: 10, alternatives: 7, quotes: 37, verified: 35 },
 };
 
 export interface ExampleDecision {
@@ -248,7 +248,7 @@ export const PR_DIFF: DiffLine[] = [
 
 export const PR_CONFLICT_LINE = "TypeNarrower = TypeIs";
 
-/** What check-pr matched for change.diff (diff only, no checkout), with the rejected names the added lines bring back. */
+/** What check-pr matched for change.diff (diff only, no checkout). The revived name is reported once, under the decision whose quote names it. */
 export const PR_MATCHES: {
   id: string;
   title: string;
@@ -261,16 +261,7 @@ export const PR_MATCHES: {
     title: "Adopt the proposal as a whole",
     status: "accepted",
     reasons: ["changes `TypeIs` in `src/typing_extensions.py`", "touches `src/typing_extensions.py`"],
-    conflict: {
-      alternative: "TypeNarrower",
-      reason: "The name was chosen to be the default tool for user-defined type narrowing functions, leaving `TypeGuard` for rare cases.",
-      evidence: verified(
-        "1",
-        post742("1"),
-        "Jelle",
-        "My hope is that the PEP’s new construct becomes the default tool used for user-defined type narrowing functions, leaving the existing `TypeGuard` as a more advanced tool used in rare cases.",
-      ),
-    },
+    conflict: null,
   },
   {
     id: "D-cd56d653",
@@ -284,16 +275,7 @@ export const PR_MATCHES: {
     title: "Compatibility with existing TypeGuard",
     status: "accepted",
     reasons: ["changes `TypeIs` in `src/typing_extensions.py`", "touches `src/typing_extensions.py`"],
-    conflict: {
-      alternative: "TypeNarrower",
-      reason: "Too awkward and jargon-y, and doesn’t clearly look ‘simpler’ than `TypeGuard`.",
-      evidence: verified(
-        "16",
-        post742("16"),
-        "Jelle",
-        "I’m going to stick with TypeIs unless a consensus for some other name emerges in this thread. Clearly lots of people have various preferences, but I’m not yet seeing any alternative that is as widely liked.",
-      ),
-    },
+    conflict: null,
   },
   {
     id: "D-0a2e257b",

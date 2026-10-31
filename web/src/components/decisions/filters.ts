@@ -14,7 +14,7 @@ export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "newest", label: "Newest first" },
   { value: "oldest", label: "Oldest first" },
   { value: "evidence", label: "Most evidence" },
-  { value: "confidence", label: "Highest confidence" },
+  { value: "confidence", label: "Most quotes found" },
 ];
 
 export type FacetKey = "status" | "dataset" | "repo" | "author" | "language";

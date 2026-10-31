@@ -451,7 +451,7 @@ export default function DecisionDetail() {
             </span>
             <span className="inline-flex items-center gap-1.5 tabular">
               <Gauge aria-hidden strokeWidth={1.75} className="size-4 text-fg-subtle" />
-              {formatPercent(d.confidence)} confidence
+              {formatPercent(d.confidence)} of quotes found
             </span>
           </>
         }
@@ -527,7 +527,7 @@ export default function DecisionDetail() {
                   {counts.verified} of {counts.total}
                 </span>
               </DetailRow>
-              <DetailRow label="Confidence">
+              <DetailRow label="Quotes found">
                 <span className="inline-flex items-center gap-2 tabular">
                   <span aria-hidden className="h-1 w-16 overflow-hidden rounded-full bg-surface-raised">
                     <span className="block h-full rounded-full bg-fg" style={{ width: `${Math.max(0, Math.min(1, d.confidence)) * 100}%` }} />

@@ -14,7 +14,7 @@ export function ExampleDecisions() {
       <SectionHeading
         id="examples"
         title="Decisions from real discussions"
-        lead={`Three records from the committed example runs, shown as stored. From the PEP 742 thread the local model found ${RUNS.pep742.decisions} decisions and ${RUNS.pep742.alternatives} rejected alternatives; from PEP 709, ${RUNS.pep709.decisions} and ${RUNS.pep709.alternatives}. Every one of the ${RUNS.pep742.quotes + RUNS.pep709.quotes} quotes was found in the post it cites.`}
+        lead={`Three records from the committed example runs, shown as stored. From the PEP 742 thread the local model found ${RUNS.pep742.decisions} decisions and ${RUNS.pep742.alternatives} rejected alternatives; from PEP 709, ${RUNS.pep709.decisions} and ${RUNS.pep709.alternatives}. ${RUNS.pep742.verified + RUNS.pep709.verified} of the ${RUNS.pep742.quotes + RUNS.pep709.quotes} quotes were found in the post they cite; the other two changed the post's meaning and are marked unverified.`}
       />
       <div className="mt-14 grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-5">
         {featured ? (
