@@ -10,6 +10,9 @@ const DecisionExplorer = lazy(() => import("@/pages/DecisionExplorer"));
 const DecisionDetail = lazy(() => import("@/pages/DecisionDetail"));
 const Discussions = lazy(() => import("@/pages/Discussions"));
 const PullRequests = lazy(() => import("@/pages/PullRequests"));
+const CodeReferences = lazy(() => import("@/pages/CodeReferences"));
+const Collections = lazy(() => import("@/pages/Collections"));
+const Settings = lazy(() => import("@/pages/Settings"));
 
 export default function App() {
   return (
@@ -21,6 +24,9 @@ export default function App() {
         <Route path="decisions/:id" element={<DecisionDetail />} />
         <Route path="discussions" element={<Discussions />} />
         <Route path="pull-requests" element={<PullRequests />} />
+        <Route path="code" element={<CodeReferences />} />
+        <Route path="collections" element={<Collections />} />
+        <Route path="settings" element={<Settings />} />
         <Route path="*" element={<NotFound />} />
       </Route>
       <Route path="*" element={<AppShell />}>
