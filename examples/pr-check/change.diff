@@ -1,0 +1,14 @@
+diff --git a/src/typing_extensions.py b/src/typing_extensions.py
+index ced7837..03696b6 100644
+--- a/src/typing_extensions.py
++++ b/src/typing_extensions.py
+@@ -2366,6 +2366,9 @@ else:
+         item = typing._type_check(parameters, f'{self} accepts only a single type.')
+         return typing._GenericAlias(self, (item,))
+ 
++# Alias for users who know the name from the first draft of PEP 742.
++TypeNarrower = TypeIs
++
+ 
+ # 3.15+?
+ if hasattr(typing, 'TypeForm'):
