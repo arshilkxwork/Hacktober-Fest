@@ -1,4 +1,4 @@
-"""Command line interface: fetch, extract, export, check-pr, eval-pep."""
+"""Command line interface: fetch, extract, export, check-pr, eval-pep, serve."""
 
 from __future__ import annotations
 
@@ -120,6 +120,32 @@ def cmd_eval_pep(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    from . import server
+
+    app = server.App(
+        store_path=args.store,
+        examples_dir=args.examples,
+        web_dir=args.web,
+        model=args.model,
+        ollama_host=args.host,
+        num_ctx=args.num_ctx,
+    )
+    httpd = server.make_server(app, args.host_bind, args.port, verbose=args.verbose)
+    host = f"[{args.host_bind}]" if ":" in args.host_bind else args.host_bind
+    print(f"DecisionTrail is running at http://{host}:{httpd.server_address[1]}/ (Ctrl+C to stop)", flush=True)
+    if not args.web or not Path(args.web, "index.html").is_file():
+        _log("The web app is not built; run `npm run build` in web/ or use the Vite dev server")
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        httpd.server_close()
+        app.close()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="decisiontrail", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -163,6 +189,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", required=True, help="directory for report.md, decisions.json and records")
     _model_args(p)
     p.set_defaults(func=cmd_eval_pep)
+
+    from .server import default_dir
+
+    p = sub.add_parser("serve", help="run the web app and its API")
+    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--host-bind", default="127.0.0.1", help="address to listen on")
+    p.add_argument("--store", default=".decisiontrail/decisions.json", help="decision store that analyses update")
+    p.add_argument("--examples", default=default_dir("examples"), help="directory of example outputs to show")
+    p.add_argument("--web", default=default_dir("web", "dist"), help="built frontend to serve")
+    p.add_argument("--verbose", action="store_true", help="log every request")
+    p.add_argument("--model", default=os.environ.get("DECISIONTRAIL_MODEL", DEFAULT_MODEL), help="Ollama model tag")
+    p.add_argument("--host", default=os.environ.get("OLLAMA_HOST", DEFAULT_HOST), help="Ollama server URL")
+    p.add_argument("--num-ctx", type=int, default=8192, help="context window passed to Ollama")
+    p.set_defaults(func=cmd_serve)
     return parser
 
 
