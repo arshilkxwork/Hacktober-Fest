@@ -14,6 +14,14 @@ def test_html_to_text_keeps_code_and_quotes():
     assert "x = 1" in text
 
 
+def test_inline_code_inside_a_quote_stays_on_one_quoted_line():
+    html = (
+        "<blockquote><p>How <code>TypeIs</code> works is like <code>cast</code>.</p>"
+        "<ul><li>keep <code>TypeGuard</code></li></ul></blockquote><p>Agreed.</p>"
+    )
+    assert html_to_text(html) == "> How `TypeIs` works is like `cast`.\n\n> - keep `TypeGuard`\n\nAgreed."
+
+
 def test_quote_title_with_avatar_does_not_swallow_the_post():
     html = (
         '<aside class="quote"><div class="title"><div class="quote-controls"></div>'
