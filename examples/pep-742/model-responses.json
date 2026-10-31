@@ -1,0 +1,897 @@
+{
+ "responses": {
+  "f54c3a09046ad2ac27cce468987a45b168487c3b8370c54d01b8e75dc2c96910": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 1 of 3.\n\n[post 1] Jelle (2024-02-11):\nPEP 742 proposes to add a ",
+   "response": {
+    "topics": [
+     {
+      "question": "Whether to adopt the proposal as a whole",
+      "posts": [
+       1
+      ]
+     },
+     {
+      "question": "Name of the new special form",
+      "posts": [
+       1,
+       2,
+       4,
+       5,
+       6,
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15,
+       16
+      ]
+     },
+     {
+      "question": "Design choices about the behavior of the new special form",
+      "posts": [
+       1,
+       2,
+       4,
+       6,
+       9,
+       10,
+       12,
+       13,
+       14,
+       15,
+       16
+      ]
+     },
+     {
+      "question": "Compatibility with existing `TypeGuard`",
+      "posts": [
+       1,
+       4,
+       7,
+       16
+      ]
+     },
+     {
+      "question": "Whether to add a `ForceTypeIs` variant",
+      "posts": [
+       15,
+       16
+      ]
+     }
+    ]
+   }
+  },
+  "c3f5e9cfc2e6dba7db8faaf70e4ca96b2d80ff92dd33b5388e9eda570c0beb72": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 1 of 3.\n\n[post 1] Jelle (2024-02-11):\nPEP 742 proposes to add a ",
+   "response": {
+    "decisions": [
+     {
+      "title": "Adopt the proposal as a whole",
+      "status": "accepted",
+      "summary": "The proposal to add a new special form `TypeIs` for user-defined type narrowing functions was accepted.",
+      "rationale": "There was general agreement that a change to the type system was warranted, and `TypeIs` was chosen as the name for the new construct. The proposal was updated to use this name, and no strong objections were raised.",
+      "evidence": [
+       {
+        "post": 4,
+        "quote": "From all this silence I’m concluding that `TypeIs` has consensus behind it. I will change the PEP to use this name."
+       },
+       {
+        "post": 16,
+        "quote": "As for the name, I’m going to stick with `TypeIs` unless a consensus for some other name emerges in this thread."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeNarrower",
+        "reason": "The name was chosen to be the default tool for user-defined type narrowing functions, leaving `TypeGuard` for rare cases.",
+        "evidence": [
+         {
+          "post": 1,
+          "quote": "My hope is that the PEP’s new construct becomes the default tool used for user-defined type narrowing functions, leaving the existing `TypeGuard` as a more advanced tool used in rare cases."
+         }
+        ]
+       },
+       {
+        "name": "TypeCheck",
+        "reason": "Guido preferred `TypeIs` over `TypeCheck`.",
+        "evidence": [
+         {
+          "post": 7,
+          "quote": "As long as we’re still voting, I’m still in favor of `TypeCheck`, but I don’t care too much about the color of this bikeshed, and further discussion about what the meaning of “is” is doesn’t feel productive; if `TypeCheck` is rejected, `TypeIs` is my second choice."
+         }
+        ]
+       },
+       {
+        "name": "IsInstance",
+        "reason": "While `IsInstance` was proposed, it was not widely liked and `TypeIs` was chosen instead.",
+        "evidence": [
+         {
+          "post": 6,
+          "quote": "To me, the name `TypeIs` in `TypeIs[Typ]` reads exactly as if the intention is to guard `type(obj) is Typ` or `type(obj) in <sequence of types>`. Type identity is important for any kind of code doing MRO analysis, so adopting the name `TypeIs` in PEP 742 makes it confusing in this context."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "peps.python.org"
+      ]
+     }
+    ]
+   }
+  },
+  "8812b5de278474a0787652f578c4f524ed943f1e67d3e403f56ea6e5faafa346": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 1 of 3.\n\n[post 1] Jelle (2024-02-11):\nPEP 742 proposes to add a ",
+   "response": {
+    "decisions": [
+     {
+      "title": "Name of the new special form",
+      "status": "accepted",
+      "summary": "The name `TypeIs` was accepted for the new special form.",
+      "rationale": "The name `TypeIs` was chosen due to its clear and concise nature, and it received consensus from the participants. The name `TypeIs` is short and reads well, making it a preferred choice over alternatives like `TypeCheck`, `Narrowed`, `IsInstance`, and `ForceTypeIs`.",
+      "evidence": [
+       {
+        "post": 4,
+        "quote": "I will change the PEP to use this name."
+       },
+       {
+        "post": 7,
+        "quote": "As long as we’re still voting, I’m still in favor of `TypeCheck`, but I don’t care too much about the color of this bikeshed, and further discussion about what the meaning of “is” is doesn’t feel productive; if `TypeCheck` is rejected, `TypeIs` is my second choice."
+       },
+       {
+        "post": 16,
+        "quote": "As for the name, I’m going to stick with `TypeIs` unless a consensus for some other name emerges in this thread. Clearly lots of people have various preferences, but I’m not yet seeing any alternative that is as widely liked."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeCheck",
+        "reason": "Not as widely liked as `TypeIs` and was considered too confusing with other uses of “type checking”.",
+        "evidence": [
+         {
+          "post": 7,
+          "quote": "As long as we’re still voting, I’m still in favor of `TypeCheck`, but I don’t care too much about the color of this bikeshed, and further discussion about what the meaning of “is” is doesn’t feel productive; if `TypeCheck` is rejected, `TypeIs` is my second choice."
+         }
+        ]
+       },
+       {
+        "name": "Narrowed",
+        "reason": "While it links to the term 'type narrowing', it was considered less concise than `TypeIs`.",
+        "evidence": [
+         {
+          "post": 1,
+          "quote": "Narrowed or `NarrowedTo`. Also links to *type narrowing"
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "peps.python.org"
+      ]
+     }
+    ]
+   }
+  },
+  "c8e9900939ef5f9e9e6f960275f260ea44147e9497d1164daa3b5d2191e8ce7a": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 1 of 3.\n\n[post 1] Jelle (2024-02-11):\nPEP 742 proposes to add a ",
+   "response": {
+    "decisions": [
+     {
+      "title": "Name of the new special form",
+      "status": "accepted",
+      "summary": "The name `TypeIs` was accepted for the new special form.",
+      "rationale": "The name `TypeIs` was chosen due to its clarity and similarity to `isinstance`, and it received consensus from the participants.",
+      "evidence": [
+       {
+        "post": 4,
+        "quote": "From all this silence I’m concluding that `TypeIs` has consensus behind it. I will change the PEP to use this name."
+       },
+       {
+        "post": 16,
+        "quote": "As for the name, I’m going to stick with `TypeIs` unless a consensus for some other name emerges in this thread."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeNarrower",
+        "reason": "While it was considered, it did not gain enough consensus.",
+        "evidence": [
+         {
+          "post": 1,
+          "quote": "My hope is that the PEP’s new construct becomes the default tool used for user-defined type narrowing functions, leaving the existing `TypeGuard` as a more advanced tool used in rare cases."
+         }
+        ]
+       },
+       {
+        "name": "TypeCheck",
+        "reason": "It was considered but not favored by Guido.",
+        "evidence": [
+         {
+          "post": 7,
+          "quote": "As long as we’re still voting, I’m still in favor of `TypeCheck`, but I don’t care too much about the color of this bikeshed, and further discussion about what the meaning of “is” is doesn’t feel productive."
+         }
+        ]
+       },
+       {
+        "name": "Narrowed",
+        "reason": "It was considered but did not gain enough consensus.",
+        "evidence": [
+         {
+          "post": 13,
+          "quote": "I understand. I see why `CastIs` is not a good idea. Thank you for the thorough explanation.\n\nDoes `TypeIs` name convey the “overriding” behaviour? In this regard `TypeNarrower` (or even `NarrowedTo`, which also was proposed) might be a better name, after all."
+         }
+        ]
+       },
+       {
+        "name": "IsInstance",
+        "reason": "While it was considered, it did not gain enough consensus.",
+        "evidence": [
+         {
+          "post": 6,
+          "quote": "To me, the name `TypeIs` in `TypeIs[Typ]` reads exactly as if the intention is to guard `type(obj) is Typ` or `type(obj) in <sequence of types>`. Type identity is important for any kind of code doing MRO analysis, so adopting the name `TypeIs` in PEP 742 makes it confusing in this context."
+         }
+        ]
+       },
+       {
+        "name": "ForceTypeIs",
+        "reason": "It was not proposed as a separate name but as a potential variant of `TypeIs`.",
+        "evidence": [
+         {
+          "post": 15,
+          "quote": "`TypeIs` – which would make type checker to check the narrowing function’s internal consistency – would be the go-to (“default”) one. Only in cases where type checker cannot understand it the `ForceTypeIs` would be advised – “force” word would help to avoid the confusion, at least it would in my case."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "peps.python.org"
+      ]
+     }
+    ]
+   }
+  },
+  "b2464992685f2a6cbddeb30917a0d21793fd720bda63b591a9715781bdfc0617": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 1 of 3.\n\n[post 1] Jelle (2024-02-11):\nPEP 742 proposes to add a ",
+   "response": {
+    "decisions": [
+     {
+      "title": "Compatibility with existing TypeGuard",
+      "status": "accepted",
+      "summary": "The new TypeNarrower construct is designed to be compatible with existing TypeGuard, with both constructs having the same specification for all aspects not related to type narrowing behavior.",
+      "rationale": "The PEP aims to avoid backwards compatibility issues by creating a new special form and leaving TypeGuard unchanged. The design choice is to make TypeNarrower and TypeGuard behave as similarly as possible, with the PEP recommending that TypeGuard be reserved for rare cases where its behavior is specifically desired.",
+      "evidence": [
+       {
+        "post": 1,
+        "quote": "I believe it is better for TypeGuard and TypeNarrower to behave as similarly as possible."
+       },
+       {
+        "post": 16,
+        "quote": "I’m going to stick with TypeIs unless a consensus for some other name emerges in this thread. Clearly lots of people have various preferences, but I’m not yet seeing any alternative that is as widely liked."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeCheck",
+        "reason": "Not widely liked, and Guido was in favor of TypeIs.",
+        "evidence": [
+         {
+          "post": 7,
+          "quote": "As long as we’re still voting, I’m still in favor of TypeCheck, but I don’t care too much about the color of this bikeshed, and further discussion about what the meaning of “is” is doesn’t feel productive."
+         }
+        ]
+       },
+       {
+        "name": "TypeNarrower",
+        "reason": "Not the preferred name, and Jelle decided to use TypeIs.",
+        "evidence": [
+         {
+          "post": 16,
+          "quote": "I’m going to stick with TypeIs unless a consensus for some other name emerges in this thread. Clearly lots of people have various preferences, but I’m not yet seeing any alternative that is as widely liked."
+         }
+        ]
+       },
+       {
+        "name": "IsInstance",
+        "reason": "Not the preferred name, and Jelle decided to use TypeIs.",
+        "evidence": [
+         {
+          "post": 16,
+          "quote": "I’m going to stick with TypeIs unless a consensus for some other name emerges in this thread. Clearly lots of people have various preferences, but I’m not yet seeing any alternative that is as widely liked."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "TypeIs",
+       "TypeGuard"
+      ]
+     }
+    ]
+   }
+  },
+  "ae5fc561587e996452796b216f487cb5f9c9d8aa32dfe73e820d2c6824c5e8af": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 1 of 3.\n\n[post 1] Jelle (2024-02-11):\nPEP 742 proposes to add a ",
+   "response": {
+    "decisions": [
+     {
+      "title": "Whether to add a ForceTypeIs variant",
+      "status": "open",
+      "summary": "The discussion did not reach a consensus on adding a `ForceTypeIs` variant.",
+      "rationale": "Some participants suggested adding a `ForceTypeIs` variant to avoid confusion, but others argued that it would be as easy to accidentally use one over the other as it would be to write an incorrect type narrower in the first place.",
+      "evidence": [
+       {
+        "post": 15,
+        "quote": "Could type checker check if `ForceTypeIs` is redundant over `TypeIs`? In this case a warning could be emitted. It’s probably not that straightforward to implement, though."
+       },
+       {
+        "post": 16,
+        "quote": "Could type checkers detect unsound `TypeIs` (and `TypeGuard`) functions? Maybe in a few cases, but I don’t expect this to be possible in general. If type checkers add the ability to detect some unsound narrowing functions, we could mention that in the user-facing documentation later. I certainly don’t want to prohibit type checkers from trying."
+       },
+       {
+        "post": 14,
+        "quote": "With `TypeIs` vs `ForceTypeIs` it becomes just as easy to accidentally use one over the other as it would be to write an incorrect type narrower in the first place, so I don’t think it’s a big enough win personally."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "ForceTypeIs",
+        "reason": "Not enough consensus to add it, and it was argued that it would be as easy to accidentally use one over the other as it would be to write an incorrect type narrower in the first place.",
+        "evidence": [
+         {
+          "post": 14,
+          "quote": "With `TypeIs` vs `ForceTypeIs` it becomes just as easy to accidentally use one over the other as it would be to write an incorrect type narrower in the first place, so I don’t think it’s a big enough win personally."
+         }
+        ]
+       }
+      ],
+      "code_refs": []
+     }
+    ]
+   }
+  },
+  "f5648a9b488a94324bd2b5416130f754eb499c1203a7d22842cfb1849e36fc56": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 2 of 3.\n\n[post 17] FelixFourcolor (2024-02-19):\nI prefer `IsInst",
+   "response": {
+    "topics": [
+     {
+      "question": "Whether to adopt the proposal as a whole",
+      "posts": [
+       17,
+       18,
+       19,
+       20,
+       21,
+       22,
+       23,
+       24,
+       25,
+       27,
+       28,
+       29,
+       30,
+       31,
+       32
+      ]
+     },
+     {
+      "question": "Design choice about the name",
+      "posts": [
+       18,
+       19,
+       25,
+       27,
+       28,
+       29,
+       30,
+       31,
+       32
+      ]
+     },
+     {
+      "question": "Semantics of the proposal",
+      "posts": [
+       22,
+       23,
+       24
+      ]
+     },
+     {
+      "question": "Compatibility with existing runtime functionality",
+      "posts": [
+       21,
+       27
+      ]
+     }
+    ]
+   }
+  },
+  "10d3ac7ab18dedf48c6ad04088d6c4af64a2938302e2aeaa2a1f0c32cdecd944": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 2 of 3.\n\n[post 17] FelixFourcolor (2024-02-19):\nI prefer `IsInst",
+   "response": {
+    "decisions": [
+     {
+      "title": "Adopt the proposal as a whole",
+      "status": "accepted",
+      "summary": "The proposal to adopt `TypeIs` as the name for the new type narrowing function was accepted.",
+      "rationale": "The community largely favored `TypeIs` over other alternatives, with `IsInstance` as a close second. The name was chosen to align with existing runtime functionality and to avoid confusion with other Python concepts.",
+      "evidence": [
+       {
+        "post": 24,
+        "quote": "I posted a PR to the PEP to clarify that type checkers may infer the more precise intersection type:"
+       },
+       {
+        "post": 25,
+        "quote": "I just asked the Typing Council for a decision. Perhaps the biggest sticking point remains the name, but none of the other proposed names seem clearly better to me, and @carljm’s comment approving of `TypeIs` is still the most liked comment in the thread, so I’m keeping `TypeIs`."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "IsInstance",
+        "reason": "Too similar to `isinstance` and potentially confusing.",
+        "evidence": [
+         {
+          "post": 17,
+          "quote": "I prefer `IsInstance`, but I can just write `from typing import TypeIs as IsInstance` so the name is not a big deal."
+         }
+        ]
+       },
+       {
+        "name": "TypeNarrow[er]",
+        "reason": "Too awkward and jargon-y.",
+        "evidence": [
+         {
+          "post": 29,
+          "quote": "I object to `TypeNarrow(er)` – I think it is too awkward and jargon-y, and doesn’t clearly look “simpler” than `TypeGuard`."
+         }
+        ]
+       },
+       {
+        "name": "TypeCheck",
+        "reason": "Too confusing with other phrases/vocabulary and idioms commonly used in Python.",
+        "evidence": [
+         {
+          "post": 28,
+          "quote": "I don’t like that being interpreted as a vote for `TypeIs`."
+         },
+         {
+          "post": 30,
+          "quote": "One I hadn’t seen suggested before (but alludes Guido’s preference for `TypeCheck`) — is `CheckType`"
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "TypeIs[Typ]",
+       "IsInstance[str]",
+       "TypeGuard[int]"
+      ]
+     }
+    ]
+   }
+  },
+  "e521e41812c82353a2b1198862b05bcdda1a0e0e79ca8d56812e4f37ec7da98a": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 2 of 3.\n\n[post 17] FelixFourcolor (2024-02-19):\nI prefer `IsInst",
+   "response": {
+    "decisions": [
+     {
+      "title": "Name of the Type Narrowing Function",
+      "status": "open",
+      "summary": "The name `TypeIs` was chosen, but the discussion is still open for alternatives.",
+      "rationale": "The name `TypeIs` was proposed and received the most support, but concerns about its clarity and potential confusion with other Python concepts remain.",
+      "evidence": [
+       {
+        "post": 24,
+        "quote": "I posted a PR to the PEP to clarify that type checkers may infer the more precise intersection type:"
+       },
+       {
+        "post": 25,
+        "quote": "I just asked the Typing Council for a decision. Perhaps the biggest sticking point remains the name, but none of the other proposed names seem clearly better to me, and @carljm’s comment approving of `TypeIs` is still the most liked comment in the thread, so I’m keeping `TypeIs`."
+       },
+       {
+        "post": 28,
+        "quote": "As one of the people that clicked like on that comment, I don’t like that being interpreted as a vote for `TypeIs`."
+       },
+       {
+        "post": 29,
+        "quote": "I do object to `TypeNarrow(er)` – I think it is too awkward and jargon-y, and doesn’t clearly look “simpler” than `TypeGuard`."
+       },
+       {
+        "post": 30,
+        "quote": "One I hadn’t seen suggested before (but alludes Guido’s preference for `TypeCheck`) — is `CheckType`"
+       },
+       {
+        "post": 31,
+        "quote": "I’ve never seen this wording lead someone to believe that the type of `x` must be exactly int; a concept that isn’t even representable in Python type annotations."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeNarrow[er]",
+        "reason": "Too awkward and jargon-y, and doesn’t clearly look “simpler” than `TypeGuard`.",
+        "evidence": [
+         {
+          "post": 29,
+          "quote": "I do object to `TypeNarrow(er)` – I think it is too awkward and jargon-y, and doesn’t clearly look “simpler” than `TypeGuard`."
+         }
+        ]
+       },
+       {
+        "name": "CheckType",
+        "reason": "Not as strongly supported as `TypeIs`.",
+        "evidence": [
+         {
+          "post": 30,
+          "quote": "One I hadn’t seen suggested before (but alludes Guido’s preference for `TypeCheck`) — is `CheckType`"
+         }
+        ]
+       },
+       {
+        "name": "IsInstance",
+        "reason": "While popular, it was not the most liked name and concerns about its clarity remained.",
+        "evidence": [
+         {
+          "post": 17,
+          "quote": "I prefer `IsInstance`, but I can just write `from typing import TypeIs as IsInstance` so the name is not a big deal."
+         },
+         {
+          "post": 19,
+          "quote": "This leans me mildly towards `TypeIs`."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "from typing import TypeIs as IsInstance"
+      ]
+     }
+    ]
+   }
+  },
+  "c40e4b35eecb3b9a5bafc56c36a78fce3c3b70ac69f60d8e6c5f16c49aded6dd": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 2 of 3.\n\n[post 17] FelixFourcolor (2024-02-19):\nI prefer `IsInst",
+   "response": {
+    "decisions": [
+     {
+      "title": "Semantics of the proposal",
+      "status": "accepted",
+      "summary": "The semantics of the proposal were accepted, with type NP being narrowed to A∧R and type NN being narrowed to A∧¬R.",
+      "rationale": "The semantics were fully agreed upon by the participants, with no objections raised.",
+      "evidence": [
+       {
+        "post": 18,
+        "quote": "The proposed semantics I fully agree with."
+       }
+      ],
+      "rejected_alternatives": [],
+      "code_refs": []
+     }
+    ]
+   }
+  },
+  "cc593b8066881f53b54b79d073f5fa5674b5a33afc1a25b112e5af5e93e47d6f": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 2 of 3.\n\n[post 17] FelixFourcolor (2024-02-19):\nI prefer `IsInst",
+   "response": {
+    "decisions": [
+     {
+      "title": "Compatibility with existing runtime functionality",
+      "status": "accepted",
+      "summary": "The PEP will be compatible with existing runtime functionality, using `isinstance` as the basis for the new `TypeIs` function.",
+      "rationale": "The community agreed that the new `TypeIs` function should be compatible with existing runtime functionality, specifically `isinstance`, to avoid confusion and maintain consistency.",
+      "evidence": [
+       {
+        "post": 23,
+        "quote": "I think it’s highly desirable to name this after existing runtime functionality to that effect;"
+       },
+       {
+        "post": 25,
+        "quote": "However, the Typing Council can recommend an alternative name instead."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeCheck",
+        "reason": "Too easy to confuse with 'type checking' in general.",
+        "evidence": [
+         {
+          "post": 18,
+          "quote": "I’d hesitate to use `TypeCheck` as the name. I agree with Jelle’s comment that it’s too easy to confuse with “type checking” in general."
+         }
+        ]
+       },
+       {
+        "name": "TypeNarrow[er]",
+        "reason": "Too awkward and jargon-y, and doesn’t clearly look ‘simpler’ than `TypeGuard`.",
+        "evidence": [
+         {
+          "post": 29,
+          "quote": "I don’t find the objections raised against `TypeIs` strongly persuasive. In my experience, it is very common when discussing Python types to say something like “the type of `x` is `int`,” where the obvious meaning is the same as `x: int`, that is “x is an instance of `int` or a subtype.” I’ve never seen this wording lead someone to believe that the type of `x` must be exactly int; a concept that isn’t even representable in Python type annotations."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "isinstance(x, str)",
+       "TypeIs[str]"
+      ]
+     }
+    ]
+   }
+  },
+  "61e19445fc41f4d7ff87dd82c794e91630610e9ac6b44b72039b18ed3a079b48": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 3 of 3.\n\n[post 32] gandhis1 (2024-03-08):\n> I don’t find the obj",
+   "response": {
+    "topics": [
+     {
+      "question": "Should PEP 742 be adopted?",
+      "posts": [
+       34,
+       35
+      ]
+     },
+     {
+      "question": "What is the naming of the new special form?",
+      "posts": [
+       32,
+       33,
+       34
+      ]
+     },
+     {
+      "question": "What are the design choices regarding the behavior of the new special form?",
+      "posts": [
+       32,
+       33,
+       34
+      ]
+     },
+     {
+      "question": "What are the design choices regarding the syntax of the new special form?",
+      "posts": []
+     },
+     {
+      "question": "Is there compatibility with existing code?",
+      "posts": [
+       34
+      ]
+     }
+    ]
+   }
+  },
+  "c9b1759f5fc2e9238b1e00eccf020db043d87e7c28ba790e118373249e1e17f9": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 3 of 3.\n\n[post 32] gandhis1 (2024-03-08):\n> I don’t find the obj",
+   "response": {
+    "decisions": [
+     {
+      "title": "Adoption of PEP 742",
+      "status": "accepted",
+      "summary": "PEP 742 was adopted and the name `TypeIs` was agreed upon.",
+      "rationale": "The Typing Council voted in favor of PEP 742 in its current form, and the Steering Council accepted the PEP.",
+      "evidence": [
+       {
+        "post": 34,
+        "quote": "The Typing Council has voted in favor of PEP 742 in its current form. All TC members support the `TypeIs` name."
+       },
+       {
+        "post": 35,
+        "quote": "The SC has accepted this PEP!"
+       }
+      ],
+      "rejected_alternatives": [],
+      "code_refs": []
+     }
+    ]
+   }
+  },
+  "5c775257980053eff0797f70838eec944224ec29860d3c5287ebcd5abf472d5d": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 3 of 3.\n\n[post 32] gandhis1 (2024-03-08):\n> I don’t find the obj",
+   "response": {
+    "decisions": [
+     {
+      "title": "Naming of the new special form",
+      "status": "accepted",
+      "summary": "The new special form was named `TypeIs`.",
+      "rationale": "The Typing Council voted in favor of PEP 742 in its current form, with all members supporting the `TypeIs` name. The goal was to pick a name that looks more general than `TypeGuard` and gives it precedence in the docs.",
+      "evidence": [
+       {
+        "post": 34,
+        "quote": "The Typing Council has voted in favor of PEP 742 in its current form. All TC members support the `TypeIs` name."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeGuard",
+        "reason": "The name `TypeGuard` is too specific and could lead people to assume it is the thing they want, while the new form is more general.",
+        "evidence": [
+         {
+          "post": 33,
+          "quote": "If we attempt to capture the difference in the name, it will lead to an overly-long, overly-specific name, leading people to assume that `TypeGuard` is probably the thing they want, and the very-specifically-named thing is probably for an edge case."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "TypeIs"
+      ]
+     }
+    ]
+   }
+  },
+  "ad6cc54c6ade8042201be08ea7635398cdd2e32ebb611bec7a4dde2b6632799f": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 3 of 3.\n\n[post 32] gandhis1 (2024-03-08):\n> I don’t find the obj",
+   "response": {
+    "decisions": [
+     {
+      "title": "Behavior of the new special form",
+      "status": "accepted",
+      "summary": "The new special form `TypeIs` behaves similarly to `TypeGuard`, but without the backward-incompatible changes proposed in PEP 724.",
+      "rationale": "The Typing Council and the Steering Council agreed that the new special form should maintain the behavior of `TypeGuard` without the backward-incompatible changes, as these changes were deemed unacceptable.",
+      "evidence": [
+       {
+        "post": 34,
+        "quote": "There was considerable bikeshedding on the name of the new special form, but we ultimately landed and agreed on `TypeIs`."
+       },
+       {
+        "post": 32,
+        "quote": "Given that the current PEP was a deliberate, explicit departure from the original PEP which sought to modify the behavior of `TypeGuard` (which remains my personal preference, despite the community moving in another direction) the concern stands that the name does not clearly convey what the difference is versus `TypeGuard`."
+       },
+       {
+        "post": 33,
+        "quote": "If we had a time machine, we would avoid the creation of `TypeGuard`, or give it the more-specific niche name instead. But that ship has sailed."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeGuard",
+        "reason": "The new special form should not have the backward-incompatible changes proposed in PEP 724.",
+        "evidence": [
+         {
+          "post": 34,
+          "quote": "There was all round agreement that the new semantics are in most cases better, but a majority of the TC found the backward incompatibility in edge cases unacceptable."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "TypeIs"
+      ]
+     }
+    ]
+   }
+  },
+  "1bf63ef2e23e24db6a6f1b4c3cd14a717c6a1445982815ac644c6b8a7d2fd583": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 3 of 3.\n\n[post 32] gandhis1 (2024-03-08):\n> I don’t find the obj",
+   "response": {
+    "decisions": [
+     {
+      "title": "Syntax of the New Special Form",
+      "status": "accepted",
+      "summary": "The new special form was named `TypeIs`.",
+      "rationale": "The Typing Council and the Steering Council agreed on the name `TypeIs` after considering various alternatives and the potential for backward compatibility issues.",
+      "evidence": [
+       {
+        "post": 34,
+        "quote": "The Typing Council has voted in favor of PEP 742 in its current form. All TC members support the `TypeIs` name."
+       },
+       {
+        "post": 35,
+        "quote": "The SC has accepted this PEP!"
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "TypeGuard",
+        "reason": "The name `TypeGuard` was deemed too specific and could lead to confusion with the existing `TypeGuard` special form.",
+        "evidence": [
+         {
+          "post": 33,
+          "quote": "And the name `TypeGuard` doesn’t help us out by being in any way specific to its behavior, relative to the new form."
+         }
+        ]
+       },
+       {
+        "name": "Other proposed names",
+        "reason": "Various other names were proposed but ultimately rejected due to their length or specificity.",
+        "evidence": [
+         {
+          "post": 32,
+          "quote": "the concern stands that the name does not clearly convey what the difference is versus `TypeGuard`."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "TypeIs"
+      ]
+     }
+    ]
+   }
+  },
+  "bb5d3bf43710d0ce56a6a28a15c1dc68c5ef043df7fe7778821e9709468dcfbc": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "Discussion: PEP 742: Narrowing types with TypeIs\nSource: https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613\nExcerpt 3 of 3.\n\n[post 32] gandhis1 (2024-03-08):\n> I don’t find the obj",
+   "response": {
+    "decisions": [
+     {
+      "title": "Compatibility with Existing Code",
+      "status": "accepted",
+      "summary": "The new `TypeIs` special form is compatible with existing code that uses `TypeGuard`.",
+      "rationale": "The Typing Council and the Steering Council agreed that the new `TypeIs` special form should not introduce backward incompatibilities with existing code that uses `TypeGuard`.",
+      "evidence": [
+       {
+        "post": 34,
+        "quote": "There was considerable bikeshedding on the name of the new special form, but we ultimately landed and agreed on `TypeIs`."
+       },
+       {
+        "post": 32,
+        "quote": "Given that the current PEP was a deliberate, explicit departure from the original PEP which sought to modify the behavior of `TypeGuard` (which remains my personal preference, despite the community moving in another direction) the concern stands that the name does not clearly convey what the difference is versus `TypeGuard`."
+       },
+       {
+        "post": 34,
+        "quote": "Details of the breaking edge cases are in PEP 724’s Backwards Compatibility section."
+       }
+      ],
+      "rejected_alternatives": [
+       {
+        "name": "Introducing backward incompatibilities",
+        "reason": "The Typing Council and the Steering Council agreed that the new `TypeIs` special form should not introduce backward incompatibilities with existing code that uses `TypeGuard`.",
+        "evidence": [
+         {
+          "post": 34,
+          "quote": "All TC members support the `TypeIs` name."
+         }
+        ]
+       }
+      ],
+      "code_refs": [
+       "TypeIs",
+       "TypeGuard"
+      ]
+     }
+    ]
+   }
+  },
+  "0f60a2ca65ceb1bc7a2709b8b4867d15608293ea0dccd99155e70e834d0061d2": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "PEP rejected idea: Change the behavior of TypeGuard\nPEP text: PEP 724 previously proposed changing the specified behavior of typing.TypeGuard so\nthat if the return type of the guard is consistent with",
+   "response": {
+    "match": 0,
+    "reason_agrees": false
+   }
+  },
+  "2bd26396479b80e2ea7b2665cc4fa4301be8ad629e30883af86277425e5230a8": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "PEP rejected idea: Do nothing\nPEP text: Both this PEP and the alternative proposed in PEP 724 have shortcomings. The latter are\ndiscussed above. As for this PEP, it introduces two special forms with v",
+   "response": {
+    "match": 5,
+    "reason_agrees": false
+   }
+  },
+  "218ef7fdb9a53e858e3433b840137f20cad8f6a5b7c05568c24fc992fe8dac59": {
+   "model": "qwen2.5:7b-instruct",
+   "prompt_head": "PEP rejected idea: Alternative names\nPEP text: This PEP currently proposes the name TypeIs, emphasizing that the special form TypeIs[T]\nreturns whether the argument is of type T, and mirroring\nTypeScr",
+   "response": {
+    "match": 3,
+    "reason_agrees": true
+   }
+  }
+ }
+}
