@@ -62,6 +62,14 @@ def _paged(fetch: Fetcher, url: str, limit: int = 20) -> List[Dict[str, Any]]:
     return out
 
 
+def _github_name(fetch: Fetcher, login: str) -> str:
+    """The profile name, so the same person can be matched on Discourse. Empty if not set or unreadable."""
+    try:
+        return (fetch(f"https://api.github.com/users/{login}") or {}).get("name") or ""
+    except Exception:
+        return ""
+
+
 def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_json) -> Thread:
     api = f"https://api.github.com/repos/{owner}/{repo}"
     issue = fetch(f"{api}/issues/{number}")
@@ -111,6 +119,7 @@ def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_js
         files = [f["filename"] for f in _paged(fetch, f"{api}/pulls/{number}/files")]
 
     raw.sort(key=lambda r: r["created_at"])
+    names = {login: _github_name(fetch, login) for login in {r["author"] for r in raw}}
     posts = [
         Post(
             id=str(i),
@@ -119,6 +128,7 @@ def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_js
             body=r["body"],
             url=r["url"],
             platform="github",
+            display_name=names[r["author"]],
             path=r.get("path"),
             line=r.get("line"),
         )
