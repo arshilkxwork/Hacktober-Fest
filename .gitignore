@@ -10,3 +10,4 @@ venv/
 .coverage
 .DS_Store
 .env
+.decisiontrail/
