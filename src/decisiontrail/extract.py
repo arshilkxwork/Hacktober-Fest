@@ -289,7 +289,10 @@ def extract_thread(
             progress(f"{thread.source}: excerpt {i}/{len(chunks)} (posts {posts[0].id}-{posts[-1].id})")
         excerpt = build_prompt(thread, posts, i, len(chunks))
         topics = backend.complete_json(TOPICS_PROMPT, excerpt, TOPICS_SCHEMA).get("topics", []) or []
-        questions = [str(t.get("question", "")).strip() for t in topics][:MAX_TOPICS]
+        questions = [str(t.get("question", "")).strip() for t in topics]
+        if len(questions) > MAX_TOPICS and progress:
+            progress(f"  {len(questions) - MAX_TOPICS} more topics in this excerpt not extracted: {'; '.join(questions[MAX_TOPICS:])[:300]}")
+        questions = questions[:MAX_TOPICS]
         for question in filter(None, questions):
             focus = f"{excerpt}\nRecord only the decision about this question: {question}"
             batches.append(parse_decisions(backend.complete_json(SYSTEM_PROMPT, focus, SCHEMA), thread))

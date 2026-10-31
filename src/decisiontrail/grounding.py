@@ -48,6 +48,33 @@ def _best_window(quote: str, body: str) -> Tuple[float, str]:
     return best, best_text
 
 
+_POLARITY = {"not", "no", "never", "without", "cannot", "nor", "none", "nothing", "neither"}
+
+
+def changes_meaning(quote: str, found: str) -> bool:
+    """True when a fuzzy match differs in more than formatting, typos or dropped filler words.
+
+    A substituted word ("drop" for "keep", "faster" for "slower"), a negation or a number that
+    differs makes the quote say something the post does not, so it must not count as verified.
+    """
+    def words(text: str) -> list:
+        return [w for w in (re.sub(r"[^\w']", "", t) for t in normalize(text).split()) if w]
+
+    q, f = words(quote), words(found)
+    for tag, i1, i2, j1, j2 in SequenceMatcher(None, q, f, autojunk=False).get_opcodes():
+        if tag == "equal":
+            continue
+        a, b = q[i1:i2], f[j1:j2]
+        if tag == "replace" and len(a) == len(b) and all(SequenceMatcher(None, x, y).ratio() >= 0.8 for x, y in zip(a, b)):
+            continue  # typos and punctuation inside words
+        for word in a + b:
+            if word in _POLARITY or "n't" in word or any(ch.isdigit() for ch in word):
+                return True
+        if tag == "replace" and any(len(w) > 3 for w in a + b):
+            return True
+    return False
+
+
 def locate(quote: str, body: str) -> Tuple[float, str]:
     nq, nb = normalize(quote), normalize(body)
     if nq and nq in nb:
@@ -70,7 +97,7 @@ def verify_evidence(ev: Evidence, thread: Thread) -> Evidence:
             if score > best_score:
                 best_score, best_text, best_post = score, text, other
     ev.match_score = round(best_score, 3)
-    ev.verified = best_score >= ACCEPT_SCORE
+    ev.verified = best_score >= ACCEPT_SCORE and (best_score == 1.0 or not changes_meaning(ev.quote, best_text))
     if ev.verified and best_post is not None:
         ev.post_id = best_post.id
         if best_score < 1.0:

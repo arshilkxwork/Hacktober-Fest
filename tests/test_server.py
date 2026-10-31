@@ -12,6 +12,10 @@ from decisiontrail import server
 from test_extract import RAW, FakeBackend
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
+# What the API should report, computed from the example files themselves.
+THREADS = sorted(p.parent.name for p in EXAMPLES.glob("*/thread.json"))
+POSTS = sum(len(json.loads(p.read_text())["posts"]) for p in EXAMPLES.glob("*/thread.json"))
+DECISION_IDS = {d["id"] for p in EXAMPLES.glob("*/decisions.json") for d in json.loads(p.read_text())["decisions"]}
 
 
 def _closed_port():
@@ -67,7 +71,7 @@ def test_datasets_and_merged_decisions(api):
 
     decisions = api("GET", "/api/decisions")[1]["decisions"]
     ids = [d["id"] for d in decisions]
-    assert len(ids) == len(set(ids)) == 17
+    assert len(ids) == len(set(ids)) == len(DECISION_IDS)
     adopt = next(d for d in decisions if d["id"] == "D-6cc1785a")
     # pep-742 and pr-check share ids; the pr-check copy carries the code links.
     assert adopt["datasets"] == ["pep-742", "pr-check"]
@@ -100,21 +104,21 @@ def test_decision_detail_timeline(api):
 def test_stats_are_consistent(api):
     stats = api("GET", "/api/stats")[1]
     t = stats["totals"]
-    assert t["decisions"] == 17 == t["accepted"] + t["rejected"] + t["open"]
+    assert t["decisions"] == len(DECISION_IDS) == t["accepted"] + t["rejected"] + t["open"]
     assert sum(r["count"] for r in stats["status_breakdown"]) == t["decisions"]
     assert t["verified_quotes"] <= t["total_quotes"]
-    assert t["discussions"] == 2 and t["posts"] == 39 + 33
+    assert t["discussions"] == len(THREADS) and t["posts"] == POSTS
     assert sum(w["posts"] for w in stats["discussion_activity"]) == t["posts"]
     assert all(time.strptime(w["week"], "%Y-%m-%d").tm_wday == 0 for w in stats["discussion_activity"])
     dated = sum(1 for d in api("GET", "/api/decisions")[1]["decisions"] if d["date"])
     assert sum(r["accepted"] + r["rejected"] + r["open"] for r in stats["decisions_over_time"]) == dated
-    assert {r["dataset"] for r in stats["by_discussion"]} == {"pep-709", "pep-742", "pr-check"}
+    assert {r["dataset"] for r in stats["by_discussion"]} == set(THREADS) | {"pr-check"}
 
 
 def test_threads(api):
     threads = api("GET", "/api/threads")[1]["threads"]
-    assert [t["id"] for t in threads] == ["pep-709", "pep-742"]
-    assert threads[1]["first_post_at"] == "2024-02-11T04:39:19.272Z"
+    assert [t["id"] for t in threads] == THREADS
+    assert next(t for t in threads if t["id"] == "pep-742")["first_post_at"] == "2024-02-11T04:39:19.272Z"
     thread = api("GET", "/api/threads/pep-742")[1]["thread"]
     assert len(thread["posts"]) == 33 and len(thread["posts"][0]["excerpt"]) <= 280
     assert api("GET", "/api/threads/pr-check")[0] == 404

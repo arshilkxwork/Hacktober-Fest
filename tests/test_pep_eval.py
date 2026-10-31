@@ -1,5 +1,5 @@
 from decisiontrail.models import Alternative, Decision, Evidence
-from decisiontrail.pep_eval import drop_leaked_posts, evaluate, pep_header, rejected_ideas, strip_rst
+from decisiontrail.pep_eval import candidates, drop_leaked_posts, evaluate, pep_header, rejected_ideas, strip_rst
 from conftest import make_thread
 
 PEP = """PEP: 999
@@ -99,8 +99,8 @@ class Judge:
     def complete_json(self, system, user, schema):
         self.calls += 1
         if "Rewrite the parser in Rust" in user:
-            return {"match": 1, "reason_agrees": True}
-        return {"match": 0, "reason_agrees": False}
+            return {"match": 1, "pep_phrase": "A rewrite in Rust was tried in 2022", "reason_agrees": "yes"}
+        return {"match": 0, "pep_phrase": "", "reason_agrees": "not stated"}
 
 
 def test_evaluate_with_judge():
@@ -108,17 +108,48 @@ def test_evaluate_with_judge():
     results = evaluate(rejected_ideas(PEP), decisions(), judge=judge)
     assert judge.calls == 2
     assert results[0].matched and results[0].reason_agrees is True
-    assert not results[1].matched and results[1].reason_agrees is None
+    assert results[0].pep_phrase == "A rewrite in Rust was tried in 2022"
+    assert not results[1].matched and not results[1].picked
 
 
-class AlwaysFirstJudge:
+class PickFirstJudge:
     model = "fake"
 
+    def __init__(self, phrase):
+        self.phrase = phrase
+
     def complete_json(self, system, user, schema):
-        return {"match": 1, "reason_agrees": False}
+        return {"match": 1, "pep_phrase": self.phrase, "reason_agrees": "yes"}
 
 
-def test_judge_pick_needs_an_agreeing_reason_or_the_threshold():
-    results = evaluate(rejected_ideas(PEP), decisions(), judge=AlwaysFirstJudge())
-    assert results[0].matched and results[0].similarity >= 0.2
-    assert not results[1].matched and results[1].candidate is not None and results[1].reason_agrees is False
+def test_judge_pick_needs_pep_words_that_tie_it_to_the_item():
+    # Words that are not in the PEP item, or that share nothing with the picked idea, do not count.
+    made_up = evaluate(rejected_ideas(PEP), decisions(), judge=PickFirstJudge("a completely different sentence"))
+    # Item 0 is still counted: its similarity alone clears the 0.2 threshold.
+    assert made_up[0].matched and made_up[0].similarity >= 0.2
+    assert not made_up[1].matched and made_up[1].picked and made_up[1].similarity < 0.2
+    unrelated = evaluate(rejected_ideas(PEP), decisions(), judge=PickFirstJudge("Doing nothing leaves the slow path"))
+    assert not unrelated[1].matched
+
+
+def test_same_alternative_under_several_decisions_is_one_candidate():
+    twice = decisions() + decisions()
+    twice[1].id = "D-2"
+    assert [c.label for c in candidates(twice)] == ["Rust rewrite of the parser", "Use a global cache flag"]
+
+
+def test_why_not_headings_inside_rejected_ideas_are_items():
+    rst = """Rejected Ideas
+==============
+
+Why not use a comment block?
+----------------------------
+
+Comments are already used for other things and are hard to parse reliably here.
+
+Why not a multi-line string?
+----------------------------
+
+A string would be evaluated at runtime and slow down every import of the module.
+"""
+    assert [e.title for e in rejected_ideas(rst)] == ["Why not use a comment block?", "Why not a multi-line string?"]

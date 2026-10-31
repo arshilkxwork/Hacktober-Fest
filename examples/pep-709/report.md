@@ -1,14 +1,14 @@
 # PEP 709 evaluation: Inlined comprehensions
 
 - Discussion: https://discuss.python.org/t/pep-709-inlined-comprehensions/24240 (39 posts used; posts copied from the PEP and removed: none)
-- Decisions extracted: 10; rejected ideas extracted: 7
-- Matching: TF-IDF similarity + confirmation by the local model
+- Decisions extracted: 10; distinct rejected ideas extracted: 6
+- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2 or the PEP words the model quotes are in the PEP item and share a word with the extracted idea
 
-**Recovered 0 of 1 rejected ideas from the PEP**; reason agrees with the PEP for 0 of 1.
+**Recovered 0 of 1 rejected ideas from the PEP**; the reason agrees with the PEP for 0, the PEP states no reason for 0.
 
 | PEP rejected idea | Recovered as | Similarity | Found | Reason agrees |
 |---|---|---|---|---|
-| More efficient comprehension calling, without inlining | - | 0.22 | no | - |
+| More efficient comprehension calling, without inlining | - | 0.17 | no | - |
 
 ## Details
 
