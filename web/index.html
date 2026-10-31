@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="DecisionTrail recovers the technical decisions behind your code from public discussions, with verified quotes and links to the code they shaped." />
+    <meta name="theme-color" content="#161618" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>DecisionTrail</title>
+    <script>
+      // Apply the saved theme before first paint. Default is dark.
+      (function () {
+        try {
+          var pref = localStorage.getItem("decisiontrail.theme") || "dark";
+          var dark = pref === "dark" || (pref === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

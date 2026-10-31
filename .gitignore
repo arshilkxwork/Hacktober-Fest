@@ -11,3 +11,5 @@ venv/
 .DS_Store
 .env
 .decisiontrail/
+web/node_modules/
+web/dist/

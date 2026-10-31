@@ -1,0 +1,78 @@
+/*
+ * Theme tokens. Values are RGB channels so Tailwind can apply alpha (bg-accepted/10).
+ * Light is the base; `.dark` on <html> switches to the default dark theme.
+ * Dark: cards sit one step darker than the page ground, elevation by tone, no glow.
+ */
+:root {
+  --bg: 247 247 248;
+  --bg-sunken: 241 241 243;
+  --surface: 255 255 255;
+  --surface-raised: 241 241 243;
+  --surface-overlay: 255 255 255;
+  --line: 228 228 231;
+  --line-strong: 212 212 216;
+
+  --fg: 24 24 27;
+  --fg-muted: 92 94 102;
+  --fg-subtle: 139 141 148;
+  --fg-inverse: 255 255 255;
+
+  --accent: 37 99 196;
+  --accent-hover: 29 82 166;
+
+  --accepted: 26 122 86;
+  --rejected: 192 48 74;
+  --open: 148 98 0;
+  --verified: 37 99 196;
+  --unverified: 110 112 120;
+  --conflict: 181 84 26;
+
+  --chart-1: 24 24 27;
+  --chart-2: 37 99 196;
+  --chart-3: 192 48 74;
+  --chart-4: 148 98 0;
+  --chart-grid: 228 228 231;
+
+  --shadow-overlay: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+
+  --sidebar-width: 236px;
+  --sidebar-collapsed-width: 56px;
+  --topbar-height: 52px;
+
+  color-scheme: light;
+}
+
+.dark {
+  --bg: 22 22 24;
+  --bg-sunken: 17 17 19;
+  --surface: 18 18 20;
+  --surface-raised: 31 31 34;
+  --surface-overlay: 27 27 30;
+  --line: 38 38 42;
+  --line-strong: 54 54 59;
+
+  --fg: 237 237 239;
+  --fg-muted: 154 156 163;
+  --fg-subtle: 116 118 125;
+  --fg-inverse: 18 18 20;
+
+  --accent: 92 152 224;
+  --accent-hover: 128 176 234;
+
+  --accepted: 95 195 156;
+  --rejected: 236 104 126;
+  --open: 223 172 78;
+  --verified: 92 152 224;
+  --unverified: 140 142 150;
+  --conflict: 236 142 74;
+
+  --chart-1: 237 237 239;
+  --chart-2: 92 152 224;
+  --chart-3: 236 104 126;
+  --chart-4: 223 172 78;
+  --chart-grid: 38 38 42;
+
+  --shadow-overlay: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 28px rgb(0 0 0 / 0.45);
+
+  color-scheme: dark;
+}
