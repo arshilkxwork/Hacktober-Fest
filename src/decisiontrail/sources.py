@@ -9,7 +9,7 @@ import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 from .models import Post, Thread
 
@@ -62,6 +62,14 @@ def _paged(fetch: Fetcher, url: str, limit: int = 20) -> List[Dict[str, Any]]:
     return out
 
 
+def _github_name(fetch: Fetcher, login: str) -> str:
+    """The profile name, so the same person can be matched on Discourse. Empty if not set or unreadable."""
+    try:
+        return (fetch(f"https://api.github.com/users/{login}") or {}).get("name") or ""
+    except Exception:
+        return ""
+
+
 def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_json) -> Thread:
     api = f"https://api.github.com/repos/{owner}/{repo}"
     issue = fetch(f"{api}/issues/{number}")
@@ -111,6 +119,7 @@ def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_js
         files = [f["filename"] for f in _paged(fetch, f"{api}/pulls/{number}/files")]
 
     raw.sort(key=lambda r: r["created_at"])
+    names = {login: _github_name(fetch, login) for login in {r["author"] for r in raw}}
     posts = [
         Post(
             id=str(i),
@@ -119,6 +128,7 @@ def load_github(owner: str, repo: str, number: int, fetch: Fetcher = http_get_js
             body=r["body"],
             url=r["url"],
             platform="github",
+            display_name=names[r["author"]],
             path=r.get("path"),
             line=r.get("line"),
         )
@@ -144,7 +154,7 @@ class _HTMLToText(HTMLParser):
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.parts: List[str] = []
+        self.parts: List[Tuple[str, bool]] = []
         self.quote_depth = 0
         self.aside_depth = 0
         self.skip_depth = 0
@@ -162,18 +172,18 @@ class _HTMLToText(HTMLParser):
             self.aside_depth += 1
         if tag == "blockquote":
             self.quote_depth += 1
-            self.parts.append("\n")
+            self._add("\n")
         elif tag == "br":
-            self.parts.append("\n")
+            self._add("\n")
         elif tag == "pre":
             self.in_pre = True
-            self.parts.append("\n```\n")
+            self._add("\n```\n")
         elif tag == "code" and not self.in_pre:
-            self.parts.append("`")
+            self._add("`")
         elif tag == "li":
-            self.parts.append("\n- ")
+            self._add("\n- ")
         elif tag in self.BLOCK:
-            self.parts.append("\n")
+            self._add("\n")
 
     def handle_endtag(self, tag: str) -> None:
         if self.skip_depth:
@@ -183,24 +193,38 @@ class _HTMLToText(HTMLParser):
             self.aside_depth -= 1
         if tag == "blockquote":
             self.quote_depth = max(0, self.quote_depth - 1)
-            self.parts.append("\n")
+            self._add("\n")
         elif tag == "pre":
             self.in_pre = False
-            self.parts.append("\n```\n")
+            self._add("\n```\n")
         elif tag == "code" and not self.in_pre:
-            self.parts.append("`")
+            self._add("`")
         elif tag in self.BLOCK:
-            self.parts.append("\n")
+            self._add("\n")
 
     def handle_data(self, data: str) -> None:
         if self.skip_depth:
             return
-        if self.quote_depth and not self.in_pre:
-            data = "\n".join("> " + line if line.strip() else line for line in data.split("\n"))
-        self.parts.append(data)
+        self._add(data, quoted=bool(self.quote_depth) and not self.in_pre)
+
+    def _add(self, text: str, quoted: bool = False) -> None:
+        self.parts.append((text, quoted))
 
     def text(self) -> str:
-        out = "".join(self.parts)
+        # Mark a whole line as quoted once, at its start, even when inline code splits the
+        # quoted text into several pieces.
+        lines: List[Tuple[str, bool]] = []
+        line, line_quoted = "", False
+        for chunk, quoted in self.parts:
+            pieces = chunk.split("\n")
+            for i, piece in enumerate(pieces):
+                if i:
+                    lines.append((line, line_quoted))
+                    line, line_quoted = "", False
+                line += piece
+                line_quoted = line_quoted or (quoted and bool(piece.strip()))
+        lines.append((line, line_quoted))
+        out = "\n".join("> " + text if quoted else text for text, quoted in lines)
         out = re.sub(r"[ \t]+\n", "\n", out)
         out = re.sub(r"\n{3,}", "\n\n", out)
         return out.strip()

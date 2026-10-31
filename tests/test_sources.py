@@ -14,6 +14,14 @@ def test_html_to_text_keeps_code_and_quotes():
     assert "x = 1" in text
 
 
+def test_inline_code_inside_a_quote_stays_on_one_quoted_line():
+    html = (
+        "<blockquote><p>How <code>TypeIs</code> works is like <code>cast</code>.</p>"
+        "<ul><li>keep <code>TypeGuard</code></li></ul></blockquote><p>Agreed.</p>"
+    )
+    assert html_to_text(html) == "> How `TypeIs` works is like `cast`.\n\n> - keep `TypeGuard`\n\nAgreed."
+
+
 def test_quote_title_with_avatar_does_not_swallow_the_post():
     html = (
         '<aside class="quote"><div class="title"><div class="quote-controls"></div>'
@@ -75,6 +83,12 @@ def test_load_github_pull_request_includes_review_comments_and_files():
             return [{"body": "", "user": user("dan"), "submitted_at": "2024-01-04T00:00:00Z", "html_url": "u4"}]
         if "/pulls/7/files" in url:
             return [{"filename": "parser/core.c"}]
+        if url.endswith("/users/alice"):
+            return {"login": "alice", "name": "Alice Example"}
+        if url.endswith("/users/bob"):
+            raise OSError("rate limited")
+        if "/users/" in url:
+            return {"login": url.rsplit("/", 1)[1], "name": None}
         raise AssertionError(url)
 
     thread = load_github("o", "r", 7, fetch)
@@ -82,6 +96,7 @@ def test_load_github_pull_request_includes_review_comments_and_files():
     assert thread.posts[1].path == "parser/core.c" and thread.posts[1].line == 40
     assert thread.files == ["parser/core.c"]
     assert thread.source == "github:o/r#7"
+    assert [p.display_name for p in thread.posts] == ["Alice Example", "", ""]
 
 
 def test_thread_json_round_trip(tmp_path, parser_thread):
