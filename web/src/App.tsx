@@ -8,6 +8,8 @@ import NotFound from "@/pages/NotFound";
 const Overview = lazy(() => import("@/pages/Overview"));
 const DecisionExplorer = lazy(() => import("@/pages/DecisionExplorer"));
 const DecisionDetail = lazy(() => import("@/pages/DecisionDetail"));
+const Discussions = lazy(() => import("@/pages/Discussions"));
+const PullRequests = lazy(() => import("@/pages/PullRequests"));
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
         <Route index element={<Overview />} />
         <Route path="decisions" element={<DecisionExplorer />} />
         <Route path="decisions/:id" element={<DecisionDetail />} />
+        <Route path="discussions" element={<Discussions />} />
+        <Route path="pull-requests" element={<PullRequests />} />
         <Route path="*" element={<NotFound />} />
       </Route>
       <Route path="*" element={<AppShell />}>
