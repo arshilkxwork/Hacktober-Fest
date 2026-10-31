@@ -14,12 +14,12 @@
 **Problem 06: Open Source Decision Intelligence and Knowledge Recovery**
 
 We are building **DecisionTrail**, a tool that reads public project discussions
-(GitHub issues and pull requests, discuss.python.org threads, mailing-list style
-text), pulls out the technical decisions made in them along with the reasoning
-and the alternatives that were rejected, links each decision to the source code
-it is about, and brings those decisions up again when a new pull request touches
-that code. Every extracted decision keeps a quote and a link back to the post it
-came from, so a maintainer can check it.
+(GitHub issues and pull requests, and discuss.python.org threads), pulls out the
+technical decisions made in them along with the reasoning and the alternatives
+that were rejected, links each decision to the source code it is about, and
+brings those decisions up again when a new pull request touches that code.
+Every extracted decision keeps a quote and a link back to the post it came
+from, so a maintainer can check it.
 
 ## AI models used
 
