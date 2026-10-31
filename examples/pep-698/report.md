@@ -2,7 +2,7 @@
 
 - Discussion: https://discuss.python.org/t/pep-698-a-typing-override-decorator/20839 (11 posts used; posts copied from the PEP and removed: none)
 - Decisions extracted: 3; distinct rejected ideas extracted: 0
-- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2 or the PEP words the model quotes are in the PEP item and share a word with the extracted idea
+- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2, the PEP item names it, or the PEP words the model quotes are in the item and share a specific word with it
 
 **Recovered 0 of 4 rejected ideas from the PEP**; the reason agrees with the PEP for 0, the PEP states no reason for 0.
 

@@ -153,3 +153,20 @@ Why not a multi-line string?
 A string would be evaluated at runtime and slow down every import of the module.
 """
     assert [e.title for e in rejected_ideas(rst)] == ["Why not use a comment block?", "Why not a multi-line string?"]
+
+
+def test_a_pick_counts_when_the_pep_item_names_it():
+    rst = """Rejected Ideas
+==============
+
+Alternative names
+-----------------
+
+Other names were considered, for example Narrowed or NarrowedTo, and Predicate.
+"""
+    d = Decision(id="D-1", title="Name", status="accepted", summary="", rationale="",
+                 alternatives=[Alternative("Narrowed", "Less concise.", [Evidence("2", "q", verified=True)])])
+    weak = PickFirstJudge("Other names were considered")
+    result = evaluate(rejected_ideas(rst), [d], judge=weak)[0]
+    assert result.matched and result.similarity < 0.2  # counted because the item names it, not for "considered"
+

@@ -2,19 +2,19 @@
 
 - Discussion: https://discuss.python.org/t/pep-705-read-only-typeddict-items/37867 (40 posts used; posts copied from the PEP and removed: none)
 - Decisions extracted: 7; distinct rejected ideas extracted: 8
-- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2 or the PEP words the model quotes are in the PEP item and share a word with the extracted idea
+- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2, the PEP item names it, or the PEP words the model quotes are in the item and share a specific word with it
 
 **Recovered 1 of 7 rejected ideas from the PEP**; the reason agrees with the PEP for 1, the PEP states no reason for 0.
 
 | PEP rejected idea | Recovered as | Similarity | Found | Reason agrees |
 |---|---|---|---|---|
-| A TypedMapping protocol type | - | 0.13 | no | - |
-| A higher-order ReadOnly type | - | 0.08 | no | - |
-| Calling the type Readonly | - | 0.07 | no | - |
+| A TypedMapping protocol type | - | 0.12 | no | - |
+| A higher-order ReadOnly type | - | 0.04 | no | - |
+| Calling the type Readonly | - | 0.05 | no | - |
 | Reusing the Final annotation | Final | 0.45 | yes | yes |
-| A readonly flag | - | 0.11 | no | - |
+| A readonly flag | - | 0.07 | no | - |
 | Supporting type-checked removal of read-only qualifier via copy and other methods | - | 0.11 | no | - |
-| Preventing unspecified keys in TypedDicts | - | 0.08 | no | - |
+| Preventing unspecified keys in TypedDicts | - | 0.07 | no | - |
 
 ## Details
 
@@ -41,7 +41,7 @@ Not recovered.
 PEP says: The typing.Final annotation prevents an attribute from being modified, like the proposed ReadOnly qualifier does for TypedDict items. However, it is also documented as preventing redefinition in subclasses too; from PEP 591: The typing.Final type qualifier is used to indicate that a variable or attribute should not be reassigned, redefined, or overridden. This does not fit with the intended use of ReadOnly. Rather than introduce confusion by having Final behave differently in different contexts, we chose to introduce a new qualifier.
 
 Recovered: **Final**. Final is documented as preventing redefinition in subclasses, which does not fit with the intended use of ReadOnly. (decision D-7883be42)
-PEP words it matches: "Final is documented as preventing redefinition in subclasses"
+Counted because: TF-IDF similarity 0.45.
 
 ### A readonly flag
 

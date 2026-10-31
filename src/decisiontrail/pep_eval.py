@@ -220,12 +220,21 @@ JUDGE_SCHEMA: Dict[str, Any] = {
     "required": ["match", "pep_phrase", "reason_agrees"],
 }
 
-_STOP = {"the", "and", "for", "that", "this", "with", "from", "into", "than", "then", "would", "could", "should",
-         "which", "their", "there", "these", "those", "have", "been", "were", "will", "also", "only", "more", "less"}
+_GENERIC = {"the", "and", "for", "that", "this", "with", "from", "into", "than", "then", "would", "could", "should",
+         "which", "their", "there", "these", "those", "have", "been", "were", "will", "also", "only", "more", "less",
+         # Words every rejected idea shares; they tie nothing to a particular idea.
+         "considered", "proposed", "rejected", "idea", "ideas", "approach", "option", "options", "version",
+         "earlier", "other", "name", "names", "instead", "because", "about", "using", "used", "make", "made"}
 
 
 def _content_words(text: str) -> set:
-    return {w for w in re.findall(r"[a-z0-9_]+", text.lower()) if len(w) > 3 and w not in _STOP}
+    return {w for w in re.findall(r"[a-z0-9_]+", text.lower()) if len(w) > 3 and w not in _GENERIC}
+
+
+def named_in_item(expected: Expected, cand: Candidate) -> bool:
+    """The extracted idea's name appears word for word in the PEP's item (e.g. a list of rejected names)."""
+    name = re.sub(r"[`\[\]]", "", cand.label).strip()
+    return len(name) >= 4 and re.search(rf"(?<!\w){re.escape(name)}(?!\w)", f"{expected.title}\n{expected.text}", re.I) is not None
 
 
 def anchored(phrase: str, expected: Expected, cand: Candidate) -> bool:
@@ -276,8 +285,9 @@ def evaluate(
             phrase = str(verdict.get("pep_phrase") or "")
             agrees = {"yes": True, "no": False}.get(str(verdict.get("reason_agrees")))
             # The model's pick needs support a reader can check: lexical similarity above the threshold,
-            # or PEP words that really are in the item and also appear in the extracted idea.
-            counted = sim_pick >= threshold or anchored(phrase, e, cands[idx])
+            # the extracted name written in the PEP's item, or PEP words that are in the item and share
+            # a specific word with the extracted idea.
+            counted = sim_pick >= threshold or named_in_item(e, cands[idx]) or anchored(phrase, e, cands[idx])
             results.append(ItemResult(e, cands[idx], round(sim_pick, 3), counted, agrees, phrase, picked=True))
         else:
             results.append(ItemResult(e, best, round(sim, 3), False, None))
@@ -298,8 +308,8 @@ def render_report(number: int, title: str, thread: Thread, dropped: List[str], d
         "- Matching: "
         + (
             "the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its "
-            "similarity is at least 0.2 or the PEP words the model quotes are in the PEP item and share a word "
-            "with the extracted idea"
+            "similarity is at least 0.2, the PEP item names it, or the PEP words the model quotes are in the "
+            "item and share a specific word with it"
             if judged
             else "TF-IDF similarity only (threshold 0.2)"
         ),
@@ -322,8 +332,12 @@ def render_report(number: int, title: str, thread: Thread, dropped: List[str], d
         lines += [f"### {r.expected.title}", "", "PEP says: " + " ".join(r.expected.text.split())[:600], ""]
         if r.candidate and r.matched:
             lines.append(f"Recovered: **{r.candidate.label}**. {r.candidate.reason} (decision {r.candidate.decision_id})")
-            if r.pep_phrase:
-                lines.append(f'PEP words it matches: "{" ".join(r.pep_phrase.split())}"')
+            if r.similarity >= 0.2:
+                lines.append(f"Counted because: TF-IDF similarity {r.similarity:.2f}.")
+            elif named_in_item(r.expected, r.candidate):
+                lines.append(f"Counted because: the PEP item names `{r.candidate.label}`.")
+            elif r.pep_phrase:
+                lines.append(f'Counted because: the PEP words "{" ".join(r.pep_phrase.split())}" are in the item.')
             lines.append("")
         elif r.candidate and r.picked:
             if r.pep_phrase.strip():

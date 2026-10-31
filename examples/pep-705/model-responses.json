@@ -667,7 +667,7 @@
     "reason_agrees": "not stated"
    }
   },
-  "5669b9765ea61f61ccb2b90210ca32741d3ee821f949a08b16683dda5b9426d8": {
+  "b55b116b1b7e986aff0ad10d1b013440754955504679909dd98e69a5cd5b8211": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: A higher-order ReadOnly type\nPEP text: A generalized higher-order type could be added that removes mutator methods from its parameter, e.g. ReadOnly[MovieRecord]. For a TypedDict, t",
    "response": {
@@ -676,7 +676,7 @@
     "reason_agrees": "not stated"
    }
   },
-  "1326cf23d19a8da3cb60ce7182fce3b37cdff102227d71357ad90bf2a995917c": {
+  "47d685b7a31c6df4a66569167973105da5546f016b8d2e40699f7d89e36f6b38": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Calling the type Readonly\nPEP text: Read-only is generally hyphenated, and it appears to be common convention to put initial caps onto words separated by a dash when converting to C",
    "response": {
@@ -685,7 +685,7 @@
     "reason_agrees": "not stated"
    }
   },
-  "777111d915f9cb360e8d683578339d65730f495259ef4a20b72612edba01ceb8": {
+  "c488c589dd71bbaa9cb209da14f38d25dca45a6dcd4f04abc6f471a854ec5548": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Reusing the Final annotation\nPEP text: The typing.Final annotation prevents an attribute from being modified, like the proposed ReadOnly qualifier does for TypedDict items. However,",
    "response": {
@@ -694,7 +694,7 @@
     "reason_agrees": "yes"
    }
   },
-  "109ddc42a00fc22c6c5b488b60f2f73646afc599b767c989cfe60669ee1cd3ef": {
+  "6dacede8cc13355e4a174e9a3bae36e34f347299151a4d40f3c482286bd8c08d": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: A readonly flag\nPEP text: Earlier versions of this PEP introduced a boolean flag that would ensure all items in a TypedDict were read-only::\n\n    class Movie(TypedDict, readonly=Tru",
    "response": {
@@ -703,7 +703,7 @@
     "reason_agrees": "not stated"
    }
   },
-  "8162ab46c2fb1136a9afd62fe9cded06e5ade75fecf29fce15c128b4718e8757": {
+  "113d0564f51423116fc9c6544e5615d9d31e0e29ca04613adc3f88bb7ab1a71a": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Supporting type-checked removal of read-only qualifier via copy and other methods\nPEP text: An earlier version of this PEP mandated that code like the following be supported by type",
    "response": {
@@ -712,7 +712,7 @@
     "reason_agrees": "not stated"
    }
   },
-  "c69647a0a8d917f060719b11ceeb65f2b4ba1b36fe11f22b8d60ab65524883ac": {
+  "5cfd848eb441a82076d2091294b8eeadbe3159ea4d5cbebd9c49da44ff290d25": {
    "model": "qwen2.5:7b-instruct",
    "prompt_head": "PEP rejected idea: Preventing unspecified keys in TypedDicts\nPEP text: Consider the following \"type discrimination\" code::\n\n    class A(TypedDict):\n      foo: int\n\n    class B(TypedDict):\n      bar: i",
    "response": {

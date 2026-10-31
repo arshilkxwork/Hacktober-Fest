@@ -2,15 +2,15 @@
 
 - Discussion: https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756 (19 posts used; posts copied from the PEP and removed: none)
 - Decisions extracted: 5; distinct rejected ideas extracted: 7
-- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2 or the PEP words the model quotes are in the PEP item and share a word with the extracted idea
+- Matching: the local model picks the same idea among the 10 most similar (TF-IDF); a pick counts only if its similarity is at least 0.2, the PEP item names it, or the PEP words the model quotes are in the item and share a specific word with it
 
-**Recovered 1 of 3 rejected ideas from the PEP**; the reason agrees with the PEP for 1, the PEP states no reason for 0.
+**Recovered 1 of 3 rejected ideas from the PEP**; the reason agrees with the PEP for 0, the PEP states no reason for 0.
 
 | PEP rejected idea | Recovered as | Similarity | Found | Reason agrees |
 |---|---|---|---|---|
-| types.Buffer | - | 0.11 | no | - |
-| Keep bytearray compatible with bytes | - | 0.26 | no | - |
-| Distinguish between mutable and immutable buffers | Distinguishing mutable vs. immutable buffers | 0.38 | yes | yes |
+| types.Buffer | - | 0.10 | no | - |
+| Keep bytearray compatible with bytes | - | 0.25 | no | - |
+| Distinguish between mutable and immutable buffers | Distinguishing mutable vs. immutable buffers | 0.39 | yes | no |
 
 ## Details
 
@@ -31,5 +31,5 @@ Not recovered.
 PEP says: The most frequently used distinction within buffer types is whether or not the buffer is mutable. Some functions accept only mutable buffers (e.g., bytearray, some memoryview objects), others accept all buffers. An earlier version of this PEP proposed using the presence of the bf_releasebuffer slot to determine whether a buffer type is mutable. This rule holds for most standard library buffer types, but the relationship between mutability and the presence of this slot is not absolute. For example, numpy arrays are mutable but do not have this slot. The current buffer protocol does not provide 
 
 Recovered: **Distinguishing mutable vs. immutable buffers**. Too complex and not necessary for the PEP's primary goal of improving typing support. (decision D-73342795)
-PEP words it matches: "Distinguish between mutable and immutable buffers"
+Counted because: TF-IDF similarity 0.39.
 
