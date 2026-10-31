@@ -38,8 +38,3 @@ Rejected because: Too complex and not necessary for the PEP's primary goal of im
 > "especially because Introspection and "mutable XOR shared" semantics for PyBuffer may give us a more robust way to tell them apart in the future."
 >
 > Jelle, [post 12](https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756/12) (verified)
-
-
-## Code mentioned in the discussion
-
-- `PEP 688`

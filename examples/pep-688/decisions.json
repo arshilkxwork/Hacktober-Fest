@@ -34,9 +34,7 @@
           ]
         }
       ],
-      "code_refs": [
-        "PEP 688"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756"
@@ -94,9 +92,7 @@
           ]
         }
       ],
-      "code_refs": [
-        "PEP 688"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-688-take-2-making-the-buffer-protocol-accessible-in-python/19756"

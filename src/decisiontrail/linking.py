@@ -31,8 +31,14 @@ IDENT_RE = re.compile(r"^[A-Za-z_][\w.]*$")
 
 COMMON = set(
     "None True False self cls args kwargs return import from class def print len str int list dict "
-    "set type object value name data file path self.assert test tests".split()
+    "set type object value name data file path self.assert test tests "
+    # Builtins and placeholder names: defined somewhere in any large repo, so git grep finds noise.
+    "dir locals globals vars super map zip range open iter next any all sum min max sorted repr hash "
+    "format input eval exec compile property staticmethod classmethod getattr setattr hasattr isinstance "
+    "issubclass callable foo bar baz qux spam eggs ham".split()
 )
+# Prose and changelogs mention names without defining them.
+DOC_PATH_RE = re.compile(r"(^|/)(Doc|docs?|Misc|NEWS\.d)/|\.(rst|md|txt)$|(^|/)NEWS")
 
 DEF_TEMPLATE = (
     r"^\s*(?:async\s+def|def|class|fn|pub\s+fn|func|function|struct|enum|interface|trait|type)\s+{name}\b"
@@ -103,10 +109,10 @@ def find_definitions(repo: str, ident: str, limit: int = 3) -> List[Tuple[str, i
             path, lineno, content = line.split(":", 2)
         except ValueError:
             continue
-        if pattern.search(content):
+        if pattern.search(content) and not DOC_PATH_RE.search(path):
             score = sum(h in path.lower() for h in hints)
-            # Prefer real source over tests and docs when nothing else distinguishes them.
-            score -= 0.5 * bool(re.search(r"(^|/)(tests?|docs?)/", path))
+            # Prefer real source over tests when nothing else distinguishes them.
+            score -= 0.5 * bool(re.search(r"(^|/)(tests?|Lib/test)/", path))
             found.append((score, path, int(lineno)))
     found.sort(key=lambda t: (-t[0], t[1], t[2]))
     return [(p, n) for _, p, n in found[:limit]]

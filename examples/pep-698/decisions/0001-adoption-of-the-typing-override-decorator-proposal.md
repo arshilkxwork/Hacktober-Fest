@@ -31,5 +31,4 @@ The name was chosen to be consistent with existing typing decorators and to clea
 
 ## Code mentioned in the discussion
 
-- `github.com/python/peps`
 - `pep-0698.rst`

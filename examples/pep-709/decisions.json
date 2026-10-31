@@ -51,10 +51,7 @@
         }
       ],
       "alternatives": [],
-      "code_refs": [
-        "PEP 709: Inlined comprehensions",
-        "PEP 709"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
@@ -253,9 +250,7 @@
           ]
         }
       ],
-      "code_refs": [
-        "PEP 709: Inlined comprehensions"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
@@ -354,9 +349,7 @@
           ]
         }
       ],
-      "code_refs": [
-        "PEP 709: Inlined comprehensions"
-      ],
+      "code_refs": [],
       "links": [],
       "sources": [
         "https://discuss.python.org/t/pep-709-inlined-comprehensions/24240"
@@ -550,7 +543,6 @@
         }
       ],
       "code_refs": [
-        "class A",
         "class B(A)",
         "super().fnc()"
       ],

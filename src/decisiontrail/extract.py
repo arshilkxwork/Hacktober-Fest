@@ -182,6 +182,14 @@ def _evidence(items: Iterable[Dict[str, Any]]) -> List[Evidence]:
     return out
 
 
+_NOT_CODE = re.compile(r"://|^[\w.-]+\.(org|com|net|io|dev)(/\S*)?$|^PEP\s*\d+|^(class|def|struct)\s+\w{1,2}$", re.I)
+
+
+def is_code_ref(ref: str) -> bool:
+    """Drop what the model lists as code but is a URL, a PEP title or a one-letter example class."""
+    return bool(ref) and len(ref) <= 80 and not _NOT_CODE.search(ref)
+
+
 def parse_decisions(raw: Dict[str, Any], thread: Thread) -> List[Decision]:
     decisions = []
     for d in raw.get("decisions", []) or []:
@@ -206,7 +214,7 @@ def parse_decisions(raw: Dict[str, Any], thread: Thread) -> List[Decision]:
                     for a in d.get("rejected_alternatives", []) or []
                     if str(a.get("name", "")).strip()
                 ],
-                code_refs=[str(c).strip() for c in d.get("code_refs", []) or [] if str(c).strip()],
+                code_refs=[c for c in (str(c).strip() for c in d.get("code_refs", []) or []) if is_code_ref(c)],
                 sources=[thread.url],
             )
         )

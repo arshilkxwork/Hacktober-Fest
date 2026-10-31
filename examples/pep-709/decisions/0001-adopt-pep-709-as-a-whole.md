@@ -35,9 +35,3 @@ The proposal was well-received by the community, with no significant objections 
 > "The Steering Council has decided to accept this PEP for 3.12, provided the implementation can be finished and submitted by May 22 (and preferably sooner :)."
 >
 > thomas, [post 36](https://discuss.python.org/t/pep-709-inlined-comprehensions/24240/36) (verified)
-
-
-## Code mentioned in the discussion
-
-- `PEP 709: Inlined comprehensions`
-- `PEP 709`
