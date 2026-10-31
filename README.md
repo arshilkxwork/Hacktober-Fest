@@ -199,8 +199,19 @@ pytest -q
 The tests cover the loaders (with small hand-written API payloads), HTML
 conversion, identity matching, chunking, merging, quote verification, code
 linking and rename following in a temporary git repo, diff parsing, the PR
-report, PEP parsing and scoring, and the CLI end to end with a replayed model
-response.
+report, PEP parsing and scoring, the API server, and the CLI end to end with a
+replayed model response.
+
+CI runs on every pull request and every push to `main`:
+
+| Check | What it does |
+|---|---|
+| test | `pytest` on Python 3.9 to 3.13 on Linux, and on macOS |
+| examples | re-runs the three examples from their recorded model output and fails if a report changes |
+| lint | `ruff check .` for syntax errors, undefined names and unused code |
+| package | builds the wheel, installs it in a clean environment, runs the CLI and starts `decisiontrail serve` |
+| hackathon rules | `scripts/check_rules.py`: HACKATHON.md, the MIT license, the PR template, the model in HACKATHON.md is the one the code uses, no closed or cloud AI and no secrets in the code, and every commit and PR description names the coding agent and the models |
+| web | `npm ci` and a type-checked build of the web app |
 
 ## Model
 

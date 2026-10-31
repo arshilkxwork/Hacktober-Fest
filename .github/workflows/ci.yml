@@ -88,6 +88,19 @@ jobs:
           for i in $(seq 1 20); do curl -sf http://127.0.0.1:8799/api/health > /dev/null && break; sleep 0.5; done
           curl -sf http://127.0.0.1:8799/api/stats | python -c "import json, sys; t = json.load(sys.stdin)['totals']; assert t['decisions'] > 0, t; print(t)"
 
+  rules:
+    name: hackathon rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check the repository, PR description and commits against the rules
+        run: python scripts/check_rules.py
+
   web:
     runs-on: ubuntu-latest
     steps:
