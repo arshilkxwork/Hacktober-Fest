@@ -236,7 +236,9 @@ def test_link_resolves_to_connected_repo(api, monkeypatch):
 
     repo = api.tmp / "checkout"
     repo.mkdir()
-    run = lambda *a: subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True, text=True).stdout
+    def run(*a):
+        return subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True, text=True).stdout
+
     run("init", "-q")
     (repo / "core.py").write_text("def parse_block(): pass\n")
     run("add", ".")

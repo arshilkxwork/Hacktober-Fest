@@ -18,7 +18,7 @@ authors = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "ruff>=0.6"]
 
 [project.scripts]
 decisiontrail = "decisiontrail.cli:main"
@@ -28,3 +28,10 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+# Errors and likely bugs: syntax, undefined names, unused imports and variables.
+select = ["E4", "E7", "E9", "F"]

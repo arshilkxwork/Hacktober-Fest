@@ -36,6 +36,18 @@ jobs:
             --no-repo --output /tmp/pr-check.md > /dev/null
           diff -u examples/pr-check/report.md /tmp/pr-check.md
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install "ruff>=0.6"
+      - name: Lint Python
+        run: ruff check .
+
   web:
     runs-on: ubuntu-latest
     steps:
