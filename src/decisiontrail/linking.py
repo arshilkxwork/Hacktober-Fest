@@ -1,11 +1,14 @@
-"""Link decisions to the source code they are about.
+"""Link decisions to the source code they are about, and keep those links alive.
 
 A link is found from three kinds of signal, strongest first:
 - a review comment on a pull request that the decision cites (it names a file and line)
 - a file path or code identifier named in the discussion, resolved against the repo
 - the files the pull request changed (weakest: the whole PR was about them)
 
-Each link stores the commit it was made at.
+Each link stores the commit it was made at. When a file is later renamed or
+moved, `resolve` follows the rename with `git diff -M` from that commit, and
+falls back to finding the linked symbol again if history is not available
+(for example in a shallow clone without the original commit).
 """
 
 from __future__ import annotations
@@ -153,3 +156,23 @@ def link_decision(decision: Decision, thread: Thread, repo: str, files: Optional
         for path in resolve_path(ref, files):
             add(path, None, None, "changed in the discussed PR")
     return links
+
+
+def resolve(link: CodeLink, repo: str, files: Optional[Sequence[str]] = None) -> Optional[CodeLink]:
+    """Return where the linked code lives now, following renames, or None if it is gone."""
+    files = files if files is not None else tracked_files(repo)
+    if link.path in files:
+        return link
+    if link.commit:
+        for row in git(repo, "diff", "--name-status", "-M", link.commit, "HEAD").splitlines():
+            cols = row.split("\t")
+            if cols[0].startswith("R") and len(cols) == 3 and cols[1] == link.path:
+                return CodeLink(
+                    path=cols[2], symbol=link.symbol, line=None, commit=link.commit, how=link.how, moved_from=link.path
+                )
+    if link.symbol:
+        defs = find_definitions(repo, link.symbol, limit=1)
+        if defs:
+            path, line = defs[0]
+            return CodeLink(path=path, symbol=link.symbol, line=line, commit=link.commit, how=link.how, moved_from=link.path)
+    return None

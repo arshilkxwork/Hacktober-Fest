@@ -2,8 +2,8 @@ import subprocess
 
 import pytest
 
-from decisiontrail.linking import find_definitions, link_decision, refs_from_text
-from decisiontrail.models import Alternative, Decision, Evidence
+from decisiontrail.linking import find_definitions, link_decision, refs_from_text, resolve
+from decisiontrail.models import Alternative, CodeLink, Decision, Evidence
 
 
 def run(repo, *args):
@@ -59,3 +59,21 @@ def test_link_decision_finds_paths_and_symbols(repo, parser_thread):
     assert ("parser/core.py", "Tokenizer") in found
     assert ("parser/core.py", None) in found  # "core.py" resolved by suffix
     assert all(l.commit for l in links)
+
+
+def test_resolve_follows_rename(repo, parser_thread):
+    link = [l for l in link_decision(decision(), parser_thread, str(repo)) if l.symbol == "parse_block"][0]
+    run(repo, "mv", "parser/core.py", "parser/blocks.py")
+    run(repo, "commit", "-q", "-m", "rename")
+    moved = resolve(link, str(repo))
+    assert moved.path == "parser/blocks.py" and moved.moved_from == "parser/core.py"
+
+
+def test_resolve_falls_back_to_symbol_without_history(repo):
+    link = CodeLink(path="old/place.py", symbol="Tokenizer", commit=None)
+    moved = resolve(link, str(repo))
+    assert moved.path == "parser/core.py" and moved.line == 8
+
+
+def test_resolve_returns_none_when_code_is_gone(repo):
+    assert resolve(CodeLink(path="gone.py"), str(repo)) is None
