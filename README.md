@@ -8,9 +8,30 @@ about, and brings it back up when a later pull request changes that code.
 
 Every decision carries verbatim quotes with links to the posts they came from.
 DecisionTrail checks each quote against the source text, so a maintainer can see
-which claims are backed by the discussion and which are not.
+which quotes really appear in the discussion. The check proves where a quote
+came from; the summaries and reasons around it are the model's wording.
 
 Built by team 404-Error for Hacktoberfest 2026 Hack Day Sonipat, Problem 06.
+
+## Results so far
+
+Real runs with `qwen2.5:7b-instruct` on a 16 GB laptop, recorded and replayed in
+CI (details in [examples/README.md](examples/README.md)):
+
+| PEP discussion | Posts | Decisions | Quotes found in their post | Rejected ideas recovered |
+|---|---|---|---|---|
+| PEP 742 (TypeIs) | 33 | 7 | 62 of 62 | 0 of 3 |
+| PEP 709 (inlined comprehensions) | 39 | 10 | 35 of 37 | 0 of 1 |
+| PEP 688 (buffer protocol) | 19 | 5 | 18 of 18 | 1 of 3 |
+| PEP 705 (read-only TypedDict items) | 40 | 7 | 43 of 43 | 1 of 7 |
+| PEP 698 (override decorator) | 11 | 3 | 5 of 5 | 0 of 4 |
+
+Recovering a PEP's rejected ideas is the hard part for a 7B model: 2 of 18, and
+a match is counted only with evidence a reader can check in the report. Quote
+verification holds up: 163 of 165 quotes were found in the post they cite, and
+the other two are marked unverified because the model changed their meaning. A
+live run of the PEP 742 thread reproduced the recorded extraction exactly; it
+takes about 5 minutes.
 
 ## How it works
 
@@ -180,8 +201,9 @@ dashboard, a decision explorer with each decision's timeline of quotes, a
 discussion analyzer that runs the extraction live and reports each stage, a
 pull request check that also flags changes reviving a rejected alternative, and
 a list of code links with the repositories you connect. It only reads from
-GitHub and never posts anything. The server listens on 127.0.0.1 only, and a
-`GITHUB_TOKEN` set in its environment stays on the server. See
+GitHub and never posts anything. The server listens on 127.0.0.1 by default,
+answers only requests addressed to this machine, and a `GITHUB_TOKEN` set in its
+environment or `.env` stays on the server. See
 [web/README.md](web/README.md) for the development setup.
 
 ## Examples
