@@ -1,0 +1,147 @@
+"""Command line interface: fetch, extract, export, check-pr."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from pathlib import Path
+from typing import List, Optional
+
+from . import prcheck, sources, store
+from .extract import extract_thread
+from .identity import IdentityResolver
+from .linking import link_decision, tracked_files
+from .llm import DEFAULT_HOST, DEFAULT_MODEL, LLMError, OllamaBackend, ReplayBackend
+
+
+def _log(msg: str) -> None:
+    print(msg, file=sys.stderr, flush=True)
+
+
+def _backend(args: argparse.Namespace):
+    if args.replay:
+        return ReplayBackend(args.replay, model=args.model)
+    return OllamaBackend(model=args.model, host=args.host, num_ctx=args.num_ctx, record=args.record)
+
+
+def _model_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--model", default=os.environ.get("DECISIONTRAIL_MODEL", DEFAULT_MODEL), help="Ollama model tag")
+    p.add_argument("--host", default=os.environ.get("OLLAMA_HOST", DEFAULT_HOST), help="Ollama server URL")
+    p.add_argument("--num-ctx", type=int, default=8192, help="context window passed to Ollama")
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--record", help="save every model response to this JSON file")
+    g.add_argument("--replay", help="answer from a recording instead of calling the model")
+
+
+def cmd_fetch(args: argparse.Namespace) -> int:
+    thread = sources.load_thread(args.source)
+    sources.save_thread(thread, args.output)
+    _log(f"Saved {len(thread.posts)} posts from {thread.url} to {args.output}")
+    return 0
+
+
+def cmd_extract(args: argparse.Namespace) -> int:
+    backend = _backend(args)
+    identities = IdentityResolver.from_file(args.aliases)
+    files = tracked_files(args.repo) if args.repo else None
+    found = []
+    for spec in args.sources:
+        thread = sources.load_thread(spec)
+        _log(f"Loaded {len(thread.posts)} posts: {thread.title}")
+        decisions = extract_thread(thread, backend, identities, progress=_log)
+        if args.repo:
+            for d in decisions:
+                d.links = link_decision(d, thread, args.repo, files)
+        found.extend(decisions)
+        ok = sum(d.verified for d in decisions)
+        _log(f"  {len(decisions)} decisions, {ok} with at least one quote verified in the source")
+    if not args.keep_unverified:
+        dropped = [d for d in found if not d.verified]
+        found = [d for d in found if d.verified]
+        if dropped:
+            _log(f"Dropped {len(dropped)} decision(s) with no quote found in the source (use --keep-unverified to keep them)")
+    decisions = store.upsert(store.load(args.store), found)
+    store.save(args.store, decisions, backend.model)
+    _log(f"Wrote {len(decisions)} decisions to {args.store}")
+    if args.export:
+        store.export_markdown(decisions, args.export)
+        _log(f"Wrote decision records to {args.export}/")
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    decisions = store.load(args.store)
+    paths = store.export_markdown(decisions, args.out)
+    _log(f"Wrote {len(paths)} decision records to {args.out}/")
+    return 0
+
+
+def cmd_check_pr(args: argparse.Namespace) -> int:
+    decisions = store.load(args.store)
+    if args.diff:
+        diff = Path(args.diff).read_text(encoding="utf-8")
+    else:
+        diff = prcheck.diff_between(args.repo, args.base, args.head)
+    changes = prcheck.parse_diff(diff)
+    matches = prcheck.match_decisions(decisions, changes, repo=args.repo if not args.no_repo else None)
+    report = prcheck.render_report(matches)
+    if args.output:
+        Path(args.output).write_text(report, encoding="utf-8")
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as fh:
+            fh.write(report)
+    print(report)
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="decisiontrail", description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("fetch", help="download a discussion to a local JSON file")
+    p.add_argument("source", help="GitHub issue/PR URL, owner/repo#N, or Discourse topic URL")
+    p.add_argument("-o", "--output", required=True)
+    p.set_defaults(func=cmd_fetch)
+
+    p = sub.add_parser("extract", help="extract decisions from one or more discussions")
+    p.add_argument("sources", nargs="+", help="discussion URLs or thread JSON files")
+    p.add_argument("--store", default=".decisiontrail/decisions.json", help="decision store to update")
+    p.add_argument("--repo", help="local git checkout to link decisions to")
+    p.add_argument("--aliases", help="JSON file mapping platform handles to one person")
+    p.add_argument("--export", help="also write Markdown decision records to this directory")
+    p.add_argument("--keep-unverified", action="store_true", help="keep decisions with no verified quote")
+    _model_args(p)
+    p.set_defaults(func=cmd_extract)
+
+    p = sub.add_parser("export", help="write Markdown decision records from the store")
+    p.add_argument("--store", default=".decisiontrail/decisions.json")
+    p.add_argument("--out", required=True)
+    p.set_defaults(func=cmd_export)
+
+    p = sub.add_parser("check-pr", help="list past decisions about the code a change touches")
+    p.add_argument("--store", default=".decisiontrail/decisions.json")
+    p.add_argument("--repo", default=".")
+    p.add_argument("--no-repo", action="store_true", help="match on stored paths only, without reading the repo")
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument("--base", help="base ref, e.g. origin/main")
+    g.add_argument("--diff", help="a unified diff file instead of a git range")
+    p.add_argument("--head", default="HEAD")
+    p.add_argument("--output", help="also write the report to this file")
+    p.set_defaults(func=cmd_check_pr)
+
+    return parser
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    args = build_parser().parse_args(argv)
+    try:
+        return args.func(args)
+    except (LLMError, ValueError, OSError) as exc:
+        _log(f"error: {exc}")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
