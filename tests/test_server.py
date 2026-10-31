@@ -128,7 +128,11 @@ def test_check_pr_with_diff_text_finds_revived_name(api):
     assert body["changed_files"] == [{"path": "src/typing_extensions.py", "old_path": None, "added": 3, "removed": 0}]
     assert len(body["matches"]) == 6
     conflicts = [c for m in body["matches"] for c in m["conflicts"]]
-    assert any(c["alternative"] == "TypeNarrower" and c["line"] == "TypeNarrower = TypeIs" for c in conflicts)
+    narrower = [c for c in conflicts if c["alternative"].startswith("TypeNarrow")]
+    # One card for the revived name, carrying the reason its quote supports (post 29).
+    assert len(narrower) == 1 and narrower[0]["line"] == "TypeNarrower = TypeIs"
+    assert "awkward" in narrower[0]["reason"]
+    assert "brings back an approach the discussion rejected" in body["report_markdown"]
     assert body["report_markdown"].startswith("## DecisionTrail")
     assert api("POST", "/api/check-pr", {})[0] == 400
     assert api("POST", "/api/check-pr", {"pr_url": "https://example.com/x"})[0] == 400

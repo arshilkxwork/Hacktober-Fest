@@ -120,16 +120,62 @@ def match_decisions(decisions: Sequence[Decision], changes: Sequence[FileChange]
     return matches
 
 
-def render_report(matches: Sequence[Match], limit: int = 10) -> str:
-    if not matches:
-        return "## DecisionTrail\n\nNo recorded decisions cover the code this change touches.\n"
-    lines = [
-        "## DecisionTrail",
-        "",
-        f"This change touches code covered by {len(matches)} earlier decision(s). "
-        "Read them before going ahead; every point links to the discussion it came from.",
-    ]
-    for m in matches[:limit]:
+def is_direct(m: Match) -> bool:
+    """True when the change touches the linked code itself, not just a file a link points into."""
+    return any(not r.startswith("touches ") for r in m.reasons)
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", text.lower())
+
+
+def _words(text: str) -> set:
+    return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if len(w) > 2}
+
+
+def revived_alternatives(matches: Sequence[Match], diff: str) -> List[Dict[str, str]]:
+    """Rejected alternatives the change adds back, one per name, with the best-supported reason.
+
+    The same name is often rejected under several decisions with different reasons. Prefer a
+    reason whose verified quote names the alternative, then the quote that shares most words
+    with the reason.
+    """
+    best: Dict[str, Tuple[Tuple[int, float], Dict[str, str]]] = {}
+    for m in matches:
+        for c in find_conflicts(m, diff):
+            alt = next(a for a in m.decision.alternatives if a.name == c["alternative"])
+            name = _squash(alt.name)
+            quotes = [e for e in alt.evidence if e.verified]
+            naming = [e for e in quotes if name and name in _squash(e.quote)]
+            cite = naming[0] if naming else (quotes[0] if quotes else None)
+            reason_words = _words(alt.reason)
+            overlap = len(reason_words & _words(cite.quote)) / (len(reason_words) or 1) if cite else 0.0
+            rank = (1 if naming else 0, overlap)
+            entry = {**c, "decision": m.decision.title, "url": cite.url if cite else "", "post": cite.post_id if cite else ""}
+            if name not in best or rank > best[name][0]:
+                best[name] = (rank, entry)
+    return [entry for _, entry in best.values()]
+
+
+def render_report(matches: Sequence[Match], limit: int = 10, diff: Optional[str] = None) -> str:
+    direct = [m for m in matches if is_direct(m)]
+    nearby = [m for m in matches if not is_direct(m)]
+    revived = revived_alternatives(direct, diff) if diff else []
+    lines = ["## DecisionTrail"]
+    if revived:
+        lines += ["", "**This change brings back an approach the discussion rejected:**", ""]
+        for r in revived:
+            src = f" ([post {r['post']}]({r['url']}))" if r["url"] else ""
+            lines.append(f"- `{r['line']}` revives **{r['alternative']}**, rejected because: {r['reason']}{src}")
+    if not direct:
+        lines += ["", "No recorded decision covers the lines this change touches."]
+    else:
+        lines += [
+            "",
+            f"This change touches code covered by {len(direct)} earlier decision(s). "
+            "Read them before going ahead; each one links to the discussion it came from.",
+        ]
+    for m in direct[:limit]:
         d = m.decision
         lines += ["", f"### {d.title} ({d.status.upper()})", ""]
         lines.append("Why this came up: " + "; ".join(m.reasons) + ".")
@@ -145,8 +191,11 @@ def render_report(matches: Sequence[Match], limit: int = 10) -> str:
             ev = verified[0]
             lines += ["", f'> "{ev.quote}"', f"> {ev.author}, [post {ev.post_id}]({ev.url})"]
         lines += ["", f"Sources: {', '.join(d.sources)}"]
-    if len(matches) > limit:
-        lines += ["", f"...and {len(matches) - limit} more."]
+    if len(direct) > limit:
+        lines += ["", f"...and {len(direct) - limit} more."]
+    if nearby:
+        titles = "; ".join(m.decision.title for m in nearby[:5]) + ("; ..." if len(nearby) > 5 else "")
+        lines += ["", f"Also in the changed files, but not the linked code: {len(nearby)} decision(s) ({titles})."]
     return "\n".join(lines) + "\n"
 
 

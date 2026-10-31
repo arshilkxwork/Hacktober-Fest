@@ -64,7 +64,37 @@ def test_report_lists_rejected_alternatives_with_sources():
 
 
 def test_report_when_nothing_matches():
-    assert "No recorded decisions" in render_report([])
+    assert "No recorded decision covers the lines this change touches." in render_report([])
+
+
+def test_file_only_matches_are_collapsed():
+    far = """diff --git a/parser/core.py b/parser/core.py
+--- a/parser/core.py
++++ b/parser/core.py
+@@ -200,1 +200,1 @@
+-# old comment
++# fixed typo in a comment
+"""
+    matches = match_decisions([make("s", [CodeLink(path="parser/core.py", symbol="parse_block", line=5)])], parse_diff(far))
+    report = render_report(matches, diff=far)
+    assert "No recorded decision covers the lines this change touches." in report
+    assert "Also in the changed files, but not the linked code: 1 decision(s) (Decision s)." in report
+    assert "### Decision s" not in report
+
+
+def test_report_leads_with_a_revived_alternative():
+    diff = """diff --git a/parser/core.py b/parser/core.py
+--- a/parser/core.py
++++ b/parser/core.py
+@@ -4,2 +4,3 @@
+ def parse_block(text):
++    # Rust rewrite of parse_block, see the old branch
+     return text.split()
+"""
+    matches = match_decisions([make("s", [CodeLink(path="parser/core.py", symbol="parse_block")])], parse_diff(diff))
+    report = render_report(matches, diff=diff)
+    assert report.index("brings back an approach the discussion rejected") < report.index("### Decision s")
+    assert "revives **Rust rewrite**, rejected because: 2x slower ([post 3](https://x/3))" in report
 
 
 REVIVE = """diff --git a/src/names.py b/src/names.py

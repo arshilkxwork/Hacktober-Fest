@@ -95,7 +95,7 @@ def cmd_check_pr(args: argparse.Namespace) -> int:
         repo = None if args.no_repo else repo
     changes = prcheck.parse_diff(diff)
     matches = prcheck.match_decisions(decisions, changes, repo=repo)
-    report = prcheck.render_report(matches)
+    report = prcheck.render_report(matches, diff=diff)
     if args.output:
         Path(args.output).write_text(report, encoding="utf-8")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")

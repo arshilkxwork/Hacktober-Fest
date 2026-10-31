@@ -577,15 +577,17 @@ class App:
         snap = self.snapshot()
         decisions = [snap["objects"][d["id"]] for d in snap["decisions"]]
         matches = prcheck.match_decisions(decisions, changes, repo=repo_path)
+        # One card per revived alternative: the decision whose reason is best supported.
+        chosen = {(r["decision"], r["alternative"]) for r in prcheck.revived_alternatives(matches, diff)}
         return {
             "source": source,
             "changed_files": changed_files(diff),
             "matches": [
                 {"decision": snap["by_id"][m.decision.id], "score": m.score, "reasons": m.reasons,
-                 "conflicts": prcheck.find_conflicts(m, diff)}
+                 "conflicts": [c for c in prcheck.find_conflicts(m, diff) if (m.decision.title, c["alternative"]) in chosen]}
                 for m in matches
             ],
-            "report_markdown": prcheck.render_report(matches),
+            "report_markdown": prcheck.render_report(matches, diff=diff),
         }
 
     # --- repositories -------------------------------------------------------

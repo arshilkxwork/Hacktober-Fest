@@ -1,6 +1,10 @@
 ## DecisionTrail
 
-This change touches code covered by 6 earlier decision(s). Read them before going ahead; every point links to the discussion it came from.
+**This change brings back an approach the discussion rejected:**
+
+- `TypeNarrower = TypeIs` revives **TypeNarrow[er]**, rejected because: Too awkward and jargon-y, and doesn’t clearly look “simpler” than `TypeGuard`. ([post 29](https://discuss.python.org/t/pep-742-narrowing-types-with-typeis/45613/29))
+
+This change touches code covered by 6 earlier decision(s). Read them before going ahead; each one links to the discussion it came from.
 
 ### Adopt the proposal as a whole (ACCEPTED)
 
