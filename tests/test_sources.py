@@ -1,4 +1,62 @@
-from decisiontrail.sources import load_github, load_thread, save_thread
+from decisiontrail.sources import html_to_text, load_discourse, load_github, load_thread, save_thread
+
+
+def test_html_to_text_keeps_code_and_quotes():
+    html = (
+        '<aside class="quote"><div class="title">alice said:</div>'
+        "<blockquote><p>Use a decorator</p></blockquote></aside>"
+        "<p>No, use <code>TypeIs</code> instead.</p><pre><code>x = 1</code></pre>"
+    )
+    text = html_to_text(html)
+    assert "> Use a decorator" in text
+    assert "alice said" not in text
+    assert "`TypeIs`" in text
+    assert "x = 1" in text
+
+
+def test_quote_title_with_avatar_does_not_swallow_the_post():
+    html = (
+        '<aside class="quote"><div class="title"><div class="quote-controls"></div>'
+        '<img alt="" width="24" src="a.png" class="avatar"> bob:</div>'
+        "<blockquote><p>old idea</p></blockquote></aside><p>My reply after the quote.</p>"
+    )
+    text = html_to_text(html)
+    assert "> old idea" in text
+    assert "My reply after the quote." in text
+    assert "bob:" not in text
+
+
+def test_load_discourse_fetches_missing_posts():
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        if url.endswith("/t/42.json"):
+            return {
+                "title": "PEP 999",
+                "slug": "pep-999",
+                "post_stream": {
+                    "stream": [1, 2, 3],
+                    "posts": [
+                        {"id": 1, "post_number": 1, "username": "a", "name": "Ann Lee", "created_at": "2024", "cooked": "<p>first</p>"},
+                    ],
+                },
+            }
+        assert "post_ids[]=2" in url and "post_ids[]=3" in url
+        return {
+            "post_stream": {
+                "posts": [
+                    {"id": 3, "post_number": 3, "username": "c", "created_at": "2024", "cooked": "<p>third</p>"},
+                    {"id": 2, "post_number": 2, "username": "b", "created_at": "2024", "cooked": "<p>second</p>", "post_type": 3},
+                ]
+            }
+        }
+
+    thread = load_discourse("discuss.example.org", 42, fetch)
+    assert [p.id for p in thread.posts] == ["1", "3"]  # post 2 is a moderator action
+    assert thread.posts[0].display_name == "Ann Lee"
+    assert thread.posts[1].url == "https://discuss.example.org/t/pep-999/42/3"
+    assert len(calls) == 2
 
 
 def test_load_github_pull_request_includes_review_comments_and_files():
