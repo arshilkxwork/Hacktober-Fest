@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "decisiontrail"
+version = "0.1.0"
+description = "Recover engineering decisions, their reasons and rejected alternatives from project discussions, and surface them when code changes."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [
+  { name = "Arshil Khan" },
+  { name = "Ayan Alam" },
+  { name = "Bhavya Nayal" },
+  { name = "Vaidik Garg" },
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+decisiontrail = "decisiontrail.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
