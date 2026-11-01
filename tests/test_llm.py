@@ -52,3 +52,13 @@ def test_invalid_json_from_model_is_an_error(monkeypatch):
     )
     with pytest.raises(llm.LLMError):
         llm.OllamaBackend().complete_json("s", "u", {})
+
+
+def test_unreachable_ollama_says_how_to_start_it(monkeypatch):
+    def refuse(req, timeout):
+        raise llm.urllib.error.URLError("Connection refused")
+
+    monkeypatch.setattr(llm.urllib.request, "urlopen", refuse)
+    with pytest.raises(llm.LLMError, match="ollama serve") as exc:
+        llm.OllamaBackend().complete_json("s", "u", {})
+    assert f"ollama pull {llm.DEFAULT_MODEL}" in str(exc.value)

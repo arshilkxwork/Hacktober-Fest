@@ -1,3 +1,5 @@
+import pytest
+
 from decisiontrail import store
 from decisiontrail.models import Alternative, CodeLink, Decision, Evidence
 
@@ -38,3 +40,10 @@ def test_markdown_marks_unverified_quotes(tmp_path):
     paths = store.export_markdown([sample()], str(tmp_path / "out"))
     assert paths[0].name == "0001-keep-the-c-parser.md"
     assert "| D-1 | accepted |" in (tmp_path / "out" / "README.md").read_text()
+
+
+def test_load_rejects_a_file_that_is_not_a_store(tmp_path):
+    path = tmp_path / "decisions.json"
+    path.write_text('{"decisions": [{"title": "no id"}]}', encoding="utf-8")
+    with pytest.raises(ValueError, match="not a DecisionTrail store"):
+        store.load(str(path))
