@@ -45,3 +45,9 @@ def test_fuzzy_match_that_changes_the_meaning_is_not_verified():
 def test_formatting_typos_and_dropped_asides_still_verify():
     assert not changes_meaning("the output of `locals()`), albeit minor", "the output of locals(), as described in the PEP), albeit minor")
     assert not changes_meaning("we should keep teh C parser.", "We should keep the C parser")
+
+
+def test_dropped_apostrophe_is_a_typo_but_a_new_number_is_not():
+    # "dont" for "don't" says the same thing; "3.13" for "3.12" does not.
+    assert not changes_meaning("we dont want a new keyword", "we don't want a new keyword")
+    assert changes_meaning("it needs Python 3.12", "it needs Python 3.13")
